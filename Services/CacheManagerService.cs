@@ -334,7 +334,7 @@ namespace MSFSCacheManager.Services
     };
         }
         // ---------------------------------------------------------
-        // MSFS DCE CACHE LOCATIONS
+        // MSFS 2020 DCE CACHE LOCATIONS
         // ---------------------------------------------------------
 
         public List<string> GetDCECacheLocations()
@@ -386,10 +386,14 @@ namespace MSFSCacheManager.Services
             "StreamedPackages"),
 
         // Microsoft Store MSFS 2024
+        // Verified location:
+        // ...\Microsoft.Limitless_8wekyb3d8bbwe
+        //    \LocalCache\Packages\StreamedPackages
 
         Path.Combine(
             msfs2024StorePackage,
-            "LocalState",
+            "LocalCache",
+            "Packages",
             "StreamedPackages")
     };
         }

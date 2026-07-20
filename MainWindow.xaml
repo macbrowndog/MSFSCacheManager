@@ -447,7 +447,7 @@
                         <StackPanel Grid.Column="0">
 
                             <Button x:Name="DCEButton"
-                                    Content="DCE Cache"
+                                    Content="DCE Cache (MSFS2020)"
                                     Style="{StaticResource ModernButton}"
                                     Click="DCEButton_Click"/>
 

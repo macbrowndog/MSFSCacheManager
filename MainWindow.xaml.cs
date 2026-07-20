@@ -996,11 +996,14 @@ namespace MSFSCacheManager
                         "No DCE Cache folders found.";
 
                     MessageBox.Show(
-                        "No DCE Cache folders were found " +
-                        "in the known MSFS locations.",
-                        "DCE Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+     "No MSFS 2020 DCE cache folder was found.\n\n" +
+     "DCE cache cleanup applies to Microsoft Flight Simulator 2020 only.",
+     "DCE Cache",
+     MessageBoxButton.OK,
+     MessageBoxImage.Information);
+
+                    StatusText.Text =
+                        "No MSFS 2020 DCE cache folder found.";
 
                     return;
                 }
@@ -1197,25 +1200,35 @@ private void SimObjectsButton_Click(
                 return;
             }
             MessageBoxResult result =
-       MessageBox.Show(
-           "SIMOBJECTS - ADVANCED TROUBLESHOOTING\n\n" +
-           "This operation will process the detected MSFS SimObjects location.\n\n" +
-           "CAUTION:\n" +
-           "SimObjects data may include simulator-generated or user-specific data. " +
-           "This operation should only be used when troubleshooting a specific " +
-           "Microsoft Flight Simulator issue.\n\n" +
-           "A backup will be created before any detected data is removed from " +
-           "its active location.\n\n" +
-           "Microsoft Flight Simulator must be completely closed.\n\n" +
-           "Do you want to continue?",
-           "Clear SimObjects Data",
-           MessageBoxButton.YesNo,
-           MessageBoxImage.Warning);
+      MessageBox.Show(
+          "SIMOBJECTS - ADVANCED TROUBLESHOOTING\n\n" +
+
+          "This operation will clear the detected MSFS SimObjects " +
+          "cache folders.\n\n" +
+
+          "SimObjects may contain locally cached aircraft and AI aircraft " +
+          "data. Clearing this data may cause Microsoft Flight Simulator " +
+          "to rebuild or re-download aircraft-related content and may " +
+          "result in longer loading times.\n\n" +
+
+          "This operation is NOT recommended for routine cache maintenance. " +
+          "Use it only when troubleshooting a specific SimObjects or " +
+          "aircraft-related problem.\n\n" +
+
+          "Detected data will be moved to the Backups folder before being " +
+          "removed from its active location.\n\n" +
+
+          "Microsoft Flight Simulator must be completely closed.\n\n" +
+
+          "Do you want to continue?",
+          "Clear SimObjects Cache",
+          MessageBoxButton.YesNo,
+          MessageBoxImage.Warning);
 
             if (result != MessageBoxResult.Yes)
             {
                 StatusText.Text =
-                    "SimObjects operation cancelled.";
+                    "SimObjects cleanup cancelled.";
 
                 return;
             }
