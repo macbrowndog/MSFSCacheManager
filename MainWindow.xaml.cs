@@ -663,6 +663,318 @@ namespace MSFSCacheManager
                     MessageBoxImage.Error);
             }
         }
+        // ---------------------------------------------------------
+        // SCENERY CACHE BUTTON
+        // ---------------------------------------------------------
+
+        private void SceneryCacheButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "This will clear the detected MSFS Scenery Cache folders.\n\n" +
+                    "Cache contents will be moved to the Backups folder " +
+                    "and will not be permanently deleted.\n\n" +
+                    "Microsoft Flight Simulator should be closed " +
+                    "before continuing.\n\n" +
+                    "Do you want to continue?",
+                    "Clear Scenery Cache",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "Scenery Cache cleanup cancelled.";
+
+                return;
+            }
+
+            ClearSceneryCache();
+        }
+
+
+        // ---------------------------------------------------------
+        // CLEAR SCENERY CACHE
+        // ---------------------------------------------------------
+
+        private void ClearSceneryCache()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing Scenery Cache...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                var cacheLocations =
+                    _cacheManager.GetSceneryCacheLocations();
+
+                bool anyCacheExists =
+                    cacheLocations.Exists(
+                        Directory.Exists);
+
+                if (!anyCacheExists)
+                {
+                    StatusText.Text =
+                        "No Scenery Cache folders found.";
+
+                    MessageBox.Show(
+                        "No Scenery Cache folders were found " +
+                        "in the known MSFS locations.",
+                        "Scenery Cache",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS SCENERY CACHE CLEANUP");
+
+                report.Add("");
+
+                foreach (string path in cacheLocations)
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "SceneryCache",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                AddCleanupSummary(
+                    report,
+                    totalResult);
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                ShowCleanupResult(
+                    "Scenery Cache",
+                    totalResult);
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "Scenery Cache cleanup failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Scenery Cache Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // SCENERY INDEXES BUTTON
+        // ---------------------------------------------------------
+
+        private void SceneryIndexesButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "This will clear the detected MSFS Scenery Indexes folders.\n\n" +
+                    "Cache contents will be moved to the Backups folder " +
+                    "and will not be permanently deleted.\n\n" +
+                    "Microsoft Flight Simulator should be closed " +
+                    "before continuing.\n\n" +
+                    "Do you want to continue?",
+                    "Clear Scenery Indexes",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "Scenery Indexes cleanup cancelled.";
+
+                return;
+            }
+
+            ClearSceneryIndexes();
+        }
+
+
+        // ---------------------------------------------------------
+        // CLEAR SCENERY INDEXES
+        // ---------------------------------------------------------
+
+        private void ClearSceneryIndexes()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing Scenery Indexes...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                var cacheLocations =
+                    _cacheManager.GetSceneryIndexesLocations();
+
+                bool anyCacheExists =
+                    cacheLocations.Exists(
+                        Directory.Exists);
+
+                if (!anyCacheExists)
+                {
+                    StatusText.Text =
+                        "No Scenery Indexes folders found.";
+
+                    MessageBox.Show(
+                        "No Scenery Indexes folders were found " +
+                        "in the known MSFS locations.",
+                        "Scenery Indexes",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS SCENERY INDEXES CLEANUP");
+
+                report.Add("");
+
+                foreach (string path in cacheLocations)
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "SceneryIndexes",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                AddCleanupSummary(
+                    report,
+                    totalResult);
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                ShowCleanupResult(
+                    "Scenery Indexes",
+                    totalResult);
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "Scenery Indexes cleanup failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Scenery Indexes Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // ADD CLEANUP SUMMARY TO REPORT
+        // ---------------------------------------------------------
+
+        private void AddCleanupSummary(
+            List<string> report,
+            BackupResult result)
+        {
+            report.Add("");
+            report.Add(
+                "=== SUMMARY ===");
+
+            report.Add(
+                $"Files moved: {result.FilesMoved}");
+
+            report.Add(
+                $"Files skipped: {result.FilesSkipped}");
+
+            report.Add(
+                $"Folders moved: {result.FoldersMoved}");
+
+            report.Add(
+                $"Folders skipped: {result.FoldersSkipped}");
+
+            report.Add(
+                $"Locations not found: {result.NotFoundCount}");
+
+            report.Add(
+                $"Errors: {result.ErrorCount}");
+        }
+
+
+        // ---------------------------------------------------------
+        // SHOW CLEANUP RESULT
+        // ---------------------------------------------------------
+
+        private void ShowCleanupResult(
+            string operationName,
+            BackupResult result)
+        {
+            if (result.ErrorCount == 0)
+            {
+                StatusText.Text =
+                    $"{operationName} complete. " +
+                    $"{result.FilesMoved} file(s) backed up.";
+            }
+            else
+            {
+                StatusText.Text =
+                    $"{operationName} completed with " +
+                    $"{result.ErrorCount} error(s).";
+            }
+
+            MessageBoxImage icon =
+                result.ErrorCount > 0
+                    ? MessageBoxImage.Warning
+                    : MessageBoxImage.Information;
+
+            MessageBox.Show(
+                $"{operationName} processing completed.\n\n" +
+                $"Files moved: {result.FilesMoved}\n" +
+                $"Files skipped: {result.FilesSkipped}\n" +
+                $"Folders moved: {result.FoldersMoved}\n" +
+                $"Folders skipped: {result.FoldersSkipped}\n" +
+                $"Errors: {result.ErrorCount}\n\n" +
+                $"A backup and detailed report were created.",
+                $"{operationName} Complete",
+                MessageBoxButton.OK,
+                icon);
+        }
+
+
 
 
 

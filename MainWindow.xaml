@@ -413,14 +413,14 @@
 
 
                     <Button x:Name="SceneryCacheButton"
-                            Content="Scenery Cache"
-                            Style="{StaticResource ModernButton}"/>
-
+                             Content="Scenery Cache"
+                              Style="{StaticResource ModernButton}"
+                              Click="SceneryCacheButton_Click"/>
 
                     <Button x:Name="SceneryIndexesButton"
                             Content="Scenery Indexes"
-                            Style="{StaticResource ModernButton}"/>
-
+                            Style="{StaticResource ModernButton}"
+                            Click="SceneryIndexesButton_Click"/>
 
                     <!-- ADVANCED -->
 

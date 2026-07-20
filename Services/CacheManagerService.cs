@@ -222,36 +222,28 @@ namespace MSFSCacheManager.Services
 
             return new List<string>
     {
-        // -------------------------------------------------
-        // STEAM / STANDARD MSFS 2020
-        // -------------------------------------------------
+        // Steam / Standard MSFS 2020
 
         Path.Combine(
             _roamingAppData,
             "Microsoft Flight Simulator",
             "cache"),
 
-        // -------------------------------------------------
-        // STEAM / STANDARD MSFS 2024
-        // -------------------------------------------------
+        // Steam / Standard MSFS 2024
 
         Path.Combine(
             _roamingAppData,
             "Microsoft Flight Simulator 2024",
             "cache"),
 
-        // -------------------------------------------------
-        // MICROSOFT STORE MSFS 2020
-        // -------------------------------------------------
+        // Microsoft Store MSFS 2020
 
         Path.Combine(
             msfs2020StorePackage,
             "LocalState",
             "cache"),
 
-        // -------------------------------------------------
-        // MICROSOFT STORE MSFS 2024
-        // -------------------------------------------------
+        // Microsoft Store MSFS 2024
 
         Path.Combine(
             msfs2024StorePackage,
@@ -261,7 +253,86 @@ namespace MSFSCacheManager.Services
         }
 
 
+        // ---------------------------------------------------------
+        // MSFS SCENERY CACHE LOCATIONS
+        // ---------------------------------------------------------
 
+        public List<string> GetSceneryCacheLocations()
+        {
+            string msfs2020StorePackage =
+                Path.Combine(
+                    _localAppData,
+                    "Packages",
+                    "Microsoft.FlightSimulator_8wekyb3d8bbwe");
+
+            return new List<string>
+    {
+        // Steam / Standard MSFS 2020
+
+        Path.Combine(
+            _roamingAppData,
+            "Microsoft Flight Simulator",
+            "SceneryCache"),
+
+        // Microsoft Store MSFS 2020
+
+        Path.Combine(
+            msfs2020StorePackage,
+            "LocalCache",
+            "SceneryCache")
+    };
+        }
+
+
+        // ---------------------------------------------------------
+        // MSFS SCENERY INDEX LOCATIONS
+        // ---------------------------------------------------------
+
+        public List<string> GetSceneryIndexesLocations()
+        {
+            string msfs2020StorePackage =
+                Path.Combine(
+                    _localAppData,
+                    "Packages",
+                    "Microsoft.FlightSimulator_8wekyb3d8bbwe");
+
+            string msfs2024StorePackage =
+                Path.Combine(
+                    _localAppData,
+                    "Packages",
+                    "Microsoft.Limitless_8wekyb3d8bbwe");
+
+            return new List<string>
+    {
+        // Steam / Standard MSFS 2020
+
+        Path.Combine(
+            _roamingAppData,
+            "Microsoft Flight Simulator",
+            "SceneryIndexes"),
+
+        // Steam / Standard MSFS 2024
+
+        Path.Combine(
+            _roamingAppData,
+            "Microsoft Flight Simulator 2024",
+            "SceneryIndexes"),
+
+        // Microsoft Store MSFS 2020
+
+        Path.Combine(
+            msfs2020StorePackage,
+            "LocalCache",
+            "SceneryIndexes"),
+
+        // Microsoft Store MSFS 2024
+
+        Path.Combine(
+            msfs2024StorePackage,
+            "LocalCache",
+            "SceneryIndexes")
+    };
+        }
 
         // ---------------------------------------------------------
         // MSFS ROLLING CACHE FILE LOCATIONS
