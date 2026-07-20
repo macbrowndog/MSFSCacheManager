@@ -446,24 +446,24 @@ namespace MSFSCacheManager.Services
 
 
         // ---------------------------------------------------------
-// MSFS WASM CACHE LOCATIONS
-// ---------------------------------------------------------
+        // MSFS WASM CACHE LOCATIONS
+        // ---------------------------------------------------------
 
-public List<string> GetWASMCacheLocations()
-{
-    string msfs2020StorePackage =
-        Path.Combine(
-            _localAppData,
-            "Packages",
-            "Microsoft.FlightSimulator_8wekyb3d8bbwe");
+        public List<string> GetWASMCacheLocations()
+        {
+            string msfs2020StorePackage =
+                Path.Combine(
+                    _localAppData,
+                    "Packages",
+                    "Microsoft.FlightSimulator_8wekyb3d8bbwe");
 
-    string msfs2024StorePackage =
-        Path.Combine(
-            _localAppData,
-            "Packages",
-            "Microsoft.Limitless_8wekyb3d8bbwe");
+            string msfs2024StorePackage =
+                Path.Combine(
+                    _localAppData,
+                    "Packages",
+                    "Microsoft.Limitless_8wekyb3d8bbwe");
 
-    return new List<string>
+            return new List<string>
     {
         // Steam / Standard MSFS 2020
 
@@ -490,14 +490,15 @@ public List<string> GetWASMCacheLocations()
             "wasm"),
 
         // Microsoft Store MSFS 2024
+        // Verified location:
+        // ...\Microsoft.Limitless_8wekyb3d8bbwe\LocalState\WASM
 
         Path.Combine(
             msfs2024StorePackage,
             "LocalState",
-            "Packages",
-            "wasm")
+            "WASM")
     };
-}
+        }
 
 
         // ---------------------------------------------------------
