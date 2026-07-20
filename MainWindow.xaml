@@ -490,17 +490,17 @@
 
             <Grid Grid.Row="6">
 
-                <TextBlock Text="MSFS Cache Manager"
-                           Foreground="#515966"
-                           FontSize="11"
-                           HorizontalAlignment="Left"/>
-
+                <TextBlock
+        Text="MSFS Cache Manager • Version 1.0 • Andrew M Brown • © 2026"
+        Foreground="#515966"
+        FontSize="11"
+        HorizontalAlignment="Left"/>
 
                 <TextBlock
-                    Text="Backups are created before cache data is removed"
-                    Foreground="#515966"
-                    FontSize="11"
-                    HorizontalAlignment="Right"/>
+        Text="Backups are created before cache data is removed"
+        Foreground="#515966"
+        FontSize="11"
+        HorizontalAlignment="Right"/>
 
             </Grid>
 
@@ -508,4 +508,4 @@
 
     </Grid>
 
-</Window>
+</Window>  
