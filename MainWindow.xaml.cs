@@ -1146,6 +1146,642 @@ namespace MSFSCacheManager
             }
         }
 
+        // ---------------------------------------------------------
+// SIMOBJECTS BUTTON
+// ---------------------------------------------------------
+
+private void SimObjectsButton_Click(
+    object sender,
+    RoutedEventArgs e)
+{
+    MessageBoxResult result =
+        MessageBox.Show(
+            "This will clear the detected MSFS SimObjects cache folders.\n\n" +
+            "Cache contents will be moved to the Backups folder " +
+            "and will not be permanently deleted.\n\n" +
+            "Microsoft Flight Simulator should be closed " +
+            "before continuing.\n\n" +
+            "Do you want to continue?",
+            "Clear SimObjects Cache",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+    if (result != MessageBoxResult.Yes)
+    {
+        StatusText.Text =
+            "SimObjects cleanup cancelled.";
+
+        return;
+    }
+
+    ClearSimObjectsCache();
+}
+
+
+// ---------------------------------------------------------
+// CLEAR SIMOBJECTS CACHE
+// ---------------------------------------------------------
+
+private void ClearSimObjectsCache()
+{
+    try
+    {
+        StatusText.Text =
+            "Processing SimObjects Cache...";
+
+        List<string> report =
+            new List<string>();
+
+        BackupResult totalResult =
+            new BackupResult();
+
+        var cacheLocations =
+            _cacheManager
+                .GetSimObjectsCacheLocations();
+
+        bool anyCacheExists =
+            cacheLocations.Exists(
+                Directory.Exists);
+
+        if (!anyCacheExists)
+        {
+            StatusText.Text =
+                "No SimObjects cache folders found.";
+
+            MessageBox.Show(
+                "No SimObjects cache folders were found " +
+                "in the known MSFS locations.",
+                "SimObjects Cache",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            return;
+        }
+
+        string backupSession =
+            _backupService.CreateBackupSession();
+
+        report.Add(
+            "MSFS SIMOBJECTS CACHE CLEANUP");
+
+        report.Add("");
+
+        foreach (string path in cacheLocations)
+        {
+            BackupResult result =
+                _backupService
+                    .MoveDirectoryContentsToBackup(
+                        path,
+                        backupSession,
+                        "SimObjects",
+                        report);
+
+            totalResult.Add(
+                result);
+        }
+
+        AddCleanupSummary(
+            report,
+            totalResult);
+
+        _backupService.SaveReport(
+            backupSession,
+            report);
+
+        ShowCleanupResult(
+            "SimObjects Cache",
+            totalResult);
+
+        DetectCaches();
+    }
+    catch (Exception ex)
+    {
+        StatusText.Text =
+            "SimObjects cleanup failed.";
+
+        MessageBox.Show(
+            ex.Message,
+            "SimObjects Cache Error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+    }
+}
+
+        // ---------------------------------------------------------
+        // WASM CACHE BUTTON
+        // ---------------------------------------------------------
+
+        private void WASMButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "This will clear the detected MSFS WASM cache folders.\n\n" +
+                    "Cached WASM content will be moved to the Backups folder " +
+                    "and will not be permanently deleted.\n\n" +
+                    "Microsoft Flight Simulator should be closed " +
+                    "before continuing.\n\n" +
+                    "WASM modules may need to be rebuilt by the simulator " +
+                    "the next time affected aircraft or add-ons are loaded.\n\n" +
+                    "Do you want to continue?",
+                    "Clear WASM Cache",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "WASM Cache cleanup cancelled.";
+
+                return;
+            }
+
+            ClearWASMCache();
+        }
+
+
+        // ---------------------------------------------------------
+        // CLEAR WASM CACHE
+        // ---------------------------------------------------------
+
+        private void ClearWASMCache()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing WASM Cache...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                var cacheLocations =
+                    _cacheManager
+                        .GetWASMCacheLocations();
+
+                bool anyCacheExists =
+                    cacheLocations.Exists(
+                        Directory.Exists);
+
+                if (!anyCacheExists)
+                {
+                    StatusText.Text =
+                        "No WASM cache folders found.";
+
+                    MessageBox.Show(
+                        "No WASM cache folders were found " +
+                        "in the known MSFS locations.",
+                        "WASM Cache",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS WASM CACHE CLEANUP");
+
+                report.Add("");
+
+                foreach (string path in cacheLocations)
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "WASMCache",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                AddCleanupSummary(
+                    report,
+                    totalResult);
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                ShowCleanupResult(
+                    "WASM Cache",
+                    totalResult);
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "WASM Cache cleanup failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "WASM Cache Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // CLEAR ALL CACHES BUTTON
+        // ---------------------------------------------------------
+
+        private void ClearAllButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "CLEAR ALL CACHES\n\n" +
+                    "This operation will process all detected cache locations:\n\n" +
+                    "• GPU Shader Cache\n" +
+                    "• Rolling Cache\n" +
+                    "• MSFS Cache\n" +
+                    "• Scenery Cache\n" +
+                    "• Scenery Indexes\n" +
+                    "• DCE Cache\n" +
+                    "• Streamed Packages\n" +
+                    "• SimObjects\n" +
+                    "• WASM Cache\n\n" +
+                    "All detected cache data will be moved to a backup " +
+                    "before being removed from its active cache location.\n\n" +
+                    "Microsoft Flight Simulator should be completely closed.\n\n" +
+                    "Streamed content may need to be downloaded again and " +
+                    "WASM modules may need to be rebuilt.\n\n" +
+                    "Do you want to continue?",
+                    "Clear All Caches",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "Clear All operation cancelled.";
+
+                return;
+            }
+
+            ClearAllCaches();
+        }
+
+        // ---------------------------------------------------------
+        // CLEAR ALL CACHES
+        // ---------------------------------------------------------
+
+        private void ClearAllCaches()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing all cache locations...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                // -------------------------------------------------
+                // CREATE ONE BACKUP SESSION
+                // -------------------------------------------------
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS CACHE MANAGER");
+
+                report.Add(
+                    "CLEAR ALL CACHES");
+
+                report.Add("");
+
+                report.Add(
+                    $"Started: {DateTime.Now}");
+
+                report.Add("");
+
+                // -------------------------------------------------
+                // GPU SHADER CACHE - NVIDIA
+                // -------------------------------------------------
+
+                report.Add(
+                    "========================================");
+
+                report.Add(
+                    "NVIDIA GPU SHADER CACHE");
+
+                report.Add(
+                    "========================================");
+
+                foreach (
+                    string path
+                    in _cacheManager.GetNvidiaShaderCacheLocations())
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "GPU_NVIDIA",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                // -------------------------------------------------
+                // GPU SHADER CACHE - AMD
+                // -------------------------------------------------
+
+                report.Add("");
+                report.Add(
+                    "========================================");
+
+                report.Add(
+                    "AMD GPU SHADER CACHE");
+
+                report.Add(
+                    "========================================");
+
+                foreach (
+                    string path
+                    in _cacheManager.GetAmdShaderCacheLocations())
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "GPU_AMD",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                // -------------------------------------------------
+                // ROLLING CACHE
+                // -------------------------------------------------
+
+                report.Add("");
+                report.Add(
+                    "========================================");
+
+                report.Add(
+                    "MSFS ROLLING CACHE");
+
+                report.Add(
+                    "========================================");
+
+                foreach (
+                    string path
+                    in _cacheManager.GetRollingCacheLocations())
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveFileToBackup(
+                                path,
+                                backupSession,
+                                "RollingCache",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                // -------------------------------------------------
+                // MSFS CACHE
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetMSFSCacheLocations(),
+                    backupSession,
+                    "MSFSCache",
+                    "MSFS CACHE",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // SCENERY CACHE
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetSceneryCacheLocations(),
+                    backupSession,
+                    "SceneryCache",
+                    "SCENERY CACHE",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // SCENERY INDEXES
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetSceneryIndexesLocations(),
+                    backupSession,
+                    "SceneryIndexes",
+                    "SCENERY INDEXES",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // DCE CACHE
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetDCECacheLocations(),
+                    backupSession,
+                    "DCECache",
+                    "DCE CACHE",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // STREAMED PACKAGES
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetStreamedPackagesLocations(),
+                    backupSession,
+                    "StreamedPackages",
+                    "STREAMED PACKAGES",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // SIMOBJECTS
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetSimObjectsCacheLocations(),
+                    backupSession,
+                    "SimObjects",
+                    "SIMOBJECTS CACHE",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // WASM CACHE
+                // -------------------------------------------------
+
+                ProcessDirectoryCacheGroup(
+                    _cacheManager.GetWASMCacheLocations(),
+                    backupSession,
+                    "WASMCache",
+                    "WASM CACHE",
+                    report,
+                    totalResult);
+
+                // -------------------------------------------------
+                // FINAL SUMMARY
+                // -------------------------------------------------
+
+                report.Add("");
+                report.Add(
+                    "========================================");
+
+                report.Add(
+                    "CLEAR ALL - FINAL SUMMARY");
+
+                report.Add(
+                    "========================================");
+
+                report.Add(
+                    $"Files moved: {totalResult.FilesMoved}");
+
+                report.Add(
+                    $"Files skipped: {totalResult.FilesSkipped}");
+
+                report.Add(
+                    $"Folders moved: {totalResult.FoldersMoved}");
+
+                report.Add(
+                    $"Folders skipped: {totalResult.FoldersSkipped}");
+
+                report.Add(
+                    $"Locations not found: {totalResult.NotFoundCount}");
+
+                report.Add(
+                    $"Errors: {totalResult.ErrorCount}");
+
+                report.Add("");
+
+                report.Add(
+                    $"Completed: {DateTime.Now}");
+
+                // -------------------------------------------------
+                // SAVE CONSOLIDATED REPORT
+                // -------------------------------------------------
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                // -------------------------------------------------
+                // UPDATE STATUS
+                // -------------------------------------------------
+
+                if (totalResult.ErrorCount == 0)
+                {
+                    StatusText.Text =
+                        "Clear All completed successfully.";
+                }
+                else
+                {
+                    StatusText.Text =
+                        $"Clear All completed with " +
+                        $"{totalResult.ErrorCount} error(s).";
+                }
+
+                // -------------------------------------------------
+                // SHOW RESULT
+                // -------------------------------------------------
+
+                MessageBoxImage icon =
+                    totalResult.ErrorCount > 0
+                        ? MessageBoxImage.Warning
+                        : MessageBoxImage.Information;
+
+                MessageBox.Show(
+                    "Clear All Caches completed.\n\n" +
+                    $"Files moved: {totalResult.FilesMoved}\n" +
+                    $"Files skipped: {totalResult.FilesSkipped}\n" +
+                    $"Folders moved: {totalResult.FoldersMoved}\n" +
+                    $"Folders skipped: {totalResult.FoldersSkipped}\n" +
+                    $"Locations not found: {totalResult.NotFoundCount}\n" +
+                    $"Errors: {totalResult.ErrorCount}\n\n" +
+                    "All successfully processed data was moved to " +
+                    "a single timestamped backup session.\n\n" +
+                    "A detailed consolidated report was created.",
+                    "Clear All Caches Complete",
+                    MessageBoxButton.OK,
+                    icon);
+
+                // -------------------------------------------------
+                // RESCAN
+                // -------------------------------------------------
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "Clear All operation failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Clear All Caches Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // PROCESS DIRECTORY CACHE GROUP
+        // ---------------------------------------------------------
+
+        private void ProcessDirectoryCacheGroup(
+            List<string> cacheLocations,
+            string backupSession,
+            string backupCategory,
+            string reportTitle,
+            List<string> report,
+            BackupResult totalResult)
+        {
+            report.Add("");
+            report.Add(
+                "========================================");
+
+            report.Add(
+                reportTitle);
+
+            report.Add(
+                "========================================");
+
+            foreach (string path in cacheLocations)
+            {
+                BackupResult result =
+                    _backupService
+                        .MoveDirectoryContentsToBackup(
+                            path,
+                            backupSession,
+                            backupCategory,
+                            report);
+
+                totalResult.Add(
+                    result);
+            }
+        }
 
 
         // ---------------------------------------------------------

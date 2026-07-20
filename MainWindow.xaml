@@ -385,8 +385,8 @@
 
                     <Button x:Name="ClearAllButton"
                             Content="CLEAR ALL CACHES"
-                            Style="{StaticResource ClearAllButtonStyle}"/>
-
+                            Style="{StaticResource ClearAllButtonStyle}"
+                            Click="ClearAllButton_Click"/>
                 </StackPanel>
 
 
@@ -451,8 +451,8 @@
                             
                             <Button x:Name="SimObjectsButton"
                                     Content="SimObjects"
-                                    Style="{StaticResource ModernButton}"/>
-
+                                    Style="{StaticResource ModernButton}"
+                                    Click="SimObjectsButton_Click"/>
                         </StackPanel>
 
 
@@ -465,7 +465,8 @@
                                     
                             <Button x:Name="WASMButton"
                                     Content="WASM Cache"
-                                    Style="{StaticResource ModernButton}"/>
+                                    Style="{StaticResource ModernButton}"
+                                    Click="WASMButton_Click"/>
 
                         </StackPanel>
 
