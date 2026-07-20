@@ -2,9 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MSFS Cache Manager"
-        Height="780"
+        Height="820"
         Width="1050"
-        MinHeight="720"
+        MinHeight="760"
         MinWidth="950"
         WindowStartupLocation="CenterScreen"
         Background="#0B0D10"
@@ -16,19 +16,41 @@
         <!-- MODERN ACTION BUTTON                                  -->
         <!-- ===================================================== -->
 
-        <Style x:Key="ModernButton" TargetType="Button">
+        <Style x:Key="ModernButton"
+               TargetType="Button">
 
-            <Setter Property="Height" Value="54"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-            <Setter Property="Padding" Value="18,0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#E8EAED"/>
-            <Setter Property="Background" Value="#1A1D22"/>
-            <Setter Property="BorderBrush" Value="#2B3038"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Height"
+                    Value="54"/>
+
+            <Setter Property="Margin"
+                    Value="0,0,0,10"/>
+
+            <Setter Property="Padding"
+                    Value="18,0"/>
+
+            <Setter Property="FontSize"
+                    Value="14"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="Foreground"
+                    Value="#E8EAED"/>
+
+            <Setter Property="Background"
+                    Value="#1A1D22"/>
+
+            <Setter Property="BorderBrush"
+                    Value="#2B3038"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
 
             <Setter Property="Template">
 
@@ -111,38 +133,6 @@
 
             <Setter Property="Foreground"
                     Value="#8EC5FF"/>
-
-        </Style>
-
-
-        <!-- ===================================================== -->
-        <!-- CLEAR ALL BUTTON                                      -->
-        <!-- ===================================================== -->
-
-        <Style x:Key="ClearAllButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource ModernButton}">
-
-            <Setter Property="Height"
-                    Value="60"/>
-
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Center"/>
-
-            <Setter Property="Background"
-                    Value="#8B2635"/>
-
-            <Setter Property="BorderBrush"
-                    Value="#B53A4D"/>
-
-            <Setter Property="Foreground"
-                    Value="White"/>
-
-            <Setter Property="FontSize"
-                    Value="15"/>
-
-            <Setter Property="FontWeight"
-                    Value="Bold"/>
 
         </Style>
 
@@ -349,10 +339,30 @@
                 <StackPanel Grid.Column="0">
 
 
-                    <!-- GPU -->
+                    <!-- STANDARD CACHE MAINTENANCE -->
 
-                    <TextBlock Text="GPU"
+                    <TextBlock Text="STANDARD CACHE MAINTENANCE"
                                Style="{StaticResource SectionTitle}"/>
+
+
+                    <Button x:Name="MSFSCacheButton"
+                            Content="MSFS Cache"
+                            Style="{StaticResource ModernButton}"
+                            Click="MSFSCacheButton_Click"/>
+
+
+                    <Button x:Name="RollingCacheButton"
+                            Content="Rolling Cache"
+                            Style="{StaticResource ModernButton}"
+                            Click="RollingCacheButton_Click"/>
+
+
+                    <!-- GPU CACHE -->
+
+                    <TextBlock Text="GPU CACHE"
+                               Style="{StaticResource SectionTitle}"
+                               Margin="2,20,0,12"/>
+
 
                     <Button x:Name="ShaderCacheButton"
                             Content="GPU Shader Cache"
@@ -366,27 +376,18 @@
                                Style="{StaticResource SectionTitle}"
                                Margin="2,20,0,12"/>
 
+
                     <Button x:Name="ScanButton"
                             Content="Scan Cache Locations"
                             Style="{StaticResource ToolButton}"
                             Click="ScanButton_Click"/>
+
 
                     <Button x:Name="BackupButton"
                             Content="Open Backups Folder"
                             Style="{StaticResource ToolButton}"
                             Click="BackupButton_Click"/>
 
-
-                    <!-- CLEAR ALL -->
-
-                    <TextBlock Text="ALL CACHES"
-                               Style="{StaticResource SectionTitle}"
-                               Margin="2,20,0,12"/>
-
-                    <Button x:Name="ClearAllButton"
-                            Content="CLEAR ALL CACHES"
-                            Style="{StaticResource ClearAllButtonStyle}"
-                            Click="ClearAllButton_Click"/>
                 </StackPanel>
 
 
@@ -396,38 +397,37 @@
 
                 <StackPanel Grid.Column="2">
 
-                    <TextBlock Text="MICROSOFT FLIGHT SIMULATOR"
+
+                    <!-- ADVANCED / TROUBLESHOOTING -->
+
+                    <TextBlock Text="ADVANCED / TROUBLESHOOTING"
                                Style="{StaticResource SectionTitle}"/>
 
 
-                    <Button x:Name="RollingCacheButton"
-                            Content="Rolling Cache"
-                            Style="{StaticResource ModernButton}"
-                            Click="RollingCacheButton_Click"/>
+                    <TextBlock
+                        Text="Use these options only when troubleshooting specific simulator issues. Backups are created before cache data is removed."
+                        Foreground="#8A94A6"
+                        FontSize="12"
+                        TextWrapping="Wrap"
+                        LineHeight="18"
+                        Margin="2,0,0,15"/>
 
 
-                    <Button x:Name="MSFSCacheButton"
-                             Content="MSFS Cache"
-                             Style="{StaticResource ModernButton}"
-                             Click="MSFSCacheButton_Click"/>
-
+                    <!-- SCENERY -->
 
                     <Button x:Name="SceneryCacheButton"
-                             Content="Scenery Cache"
-                              Style="{StaticResource ModernButton}"
-                              Click="SceneryCacheButton_Click"/>
+                            Content="Scenery Cache"
+                            Style="{StaticResource ModernButton}"
+                            Click="SceneryCacheButton_Click"/>
+
 
                     <Button x:Name="SceneryIndexesButton"
                             Content="Scenery Indexes"
                             Style="{StaticResource ModernButton}"
                             Click="SceneryIndexesButton_Click"/>
 
-                    <!-- ADVANCED -->
 
-                    <TextBlock Text="ADVANCED"
-                               Style="{StaticResource SectionTitle}"
-                               Margin="2,15,0,12"/>
-
+                    <!-- ADVANCED GRID -->
 
                     <Grid>
 
@@ -442,19 +442,25 @@
                         </Grid.ColumnDefinitions>
 
 
+                        <!-- LEFT ADVANCED COLUMN -->
+
                         <StackPanel Grid.Column="0">
 
                             <Button x:Name="DCEButton"
                                     Content="DCE Cache"
                                     Style="{StaticResource ModernButton}"
                                     Click="DCEButton_Click"/>
-                            
+
+
                             <Button x:Name="SimObjectsButton"
                                     Content="SimObjects"
                                     Style="{StaticResource ModernButton}"
                                     Click="SimObjectsButton_Click"/>
+
                         </StackPanel>
 
+
+                        <!-- RIGHT ADVANCED COLUMN -->
 
                         <StackPanel Grid.Column="2">
 
@@ -462,7 +468,8 @@
                                     Content="Streamed Packages"
                                     Style="{StaticResource ModernButton}"
                                     Click="StreamedPackagesButton_Click"/>
-                                    
+
+
                             <Button x:Name="WASMButton"
                                     Content="WASM Cache"
                                     Style="{StaticResource ModernButton}"
@@ -488,10 +495,12 @@
                            FontSize="11"
                            HorizontalAlignment="Left"/>
 
-                <TextBlock Text="Backups are created before cache data is removed"
-                           Foreground="#515966"
-                           FontSize="11"
-                           HorizontalAlignment="Right"/>
+
+                <TextBlock
+                    Text="Backups are created before cache data is removed"
+                    Foreground="#515966"
+                    FontSize="11"
+                    HorizontalAlignment="Right"/>
 
             </Grid>
 

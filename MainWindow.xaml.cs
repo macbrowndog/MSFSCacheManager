@@ -1427,52 +1427,7 @@ private void ClearSimObjectsCache()
             }
         }
 
-        // ---------------------------------------------------------
-        // CLEAR ALL CACHES BUTTON
-        // ---------------------------------------------------------
-
-        private void ClearAllButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (!EnsureMSFSIsClosed())
-            {
-                return;
-            }
-            MessageBoxResult result =
-                MessageBox.Show(
-                    "CLEAR ALL CACHES\n\n" +
-                    "This operation will process all detected cache locations:\n\n" +
-                    "• GPU Shader Cache\n" +
-                    "• Rolling Cache\n" +
-                    "• MSFS Cache\n" +
-                    "• Scenery Cache\n" +
-                    "• Scenery Indexes\n" +
-                    "• DCE Cache\n" +
-                    "• Streamed Packages\n" +
-                    "• SimObjects\n" +
-                    "• WASM Cache\n\n" +
-                    "All detected cache data will be moved to a backup " +
-                    "before being removed from its active cache location.\n\n" +
-                    "Microsoft Flight Simulator should be completely closed.\n\n" +
-                    "Streamed content may need to be downloaded again and " +
-                    "WASM modules may need to be rebuilt.\n\n" +
-                    "Do you want to continue?",
-                    "Clear All Caches",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                StatusText.Text =
-                    "Clear All operation cancelled.";
-
-                return;
-            }
-
-            ClearAllCaches();
-        }
-
+       
         // ---------------------------------------------------------
         // CLEAR ALL CACHES
         // ---------------------------------------------------------
