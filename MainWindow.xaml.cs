@@ -902,6 +902,251 @@ namespace MSFSCacheManager
                     MessageBoxImage.Error);
             }
         }
+        // ---------------------------------------------------------
+        // DCE CACHE BUTTON
+        // ---------------------------------------------------------
+
+        private void DCEButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "This will clear the detected MSFS DCE Cache folders.\n\n" +
+                    "Cache contents will be moved to the Backups folder " +
+                    "and will not be permanently deleted.\n\n" +
+                    "Microsoft Flight Simulator should be closed " +
+                    "before continuing.\n\n" +
+                    "Do you want to continue?",
+                    "Clear DCE Cache",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "DCE Cache cleanup cancelled.";
+
+                return;
+            }
+
+            ClearDCECache();
+        }
+
+
+        // ---------------------------------------------------------
+        // CLEAR DCE CACHE
+        // ---------------------------------------------------------
+
+        private void ClearDCECache()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing DCE Cache...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                var cacheLocations =
+                    _cacheManager.GetDCECacheLocations();
+
+                bool anyCacheExists =
+                    cacheLocations.Exists(
+                        Directory.Exists);
+
+                if (!anyCacheExists)
+                {
+                    StatusText.Text =
+                        "No DCE Cache folders found.";
+
+                    MessageBox.Show(
+                        "No DCE Cache folders were found " +
+                        "in the known MSFS locations.",
+                        "DCE Cache",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS DCE CACHE CLEANUP");
+
+                report.Add("");
+
+                foreach (string path in cacheLocations)
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "DCECache",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                AddCleanupSummary(
+                    report,
+                    totalResult);
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                ShowCleanupResult(
+                    "DCE Cache",
+                    totalResult);
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "DCE Cache cleanup failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "DCE Cache Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ---------------------------------------------------------
+        // STREAMED PACKAGES BUTTON
+        // ---------------------------------------------------------
+
+        private void StreamedPackagesButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBoxResult result =
+                MessageBox.Show(
+                    "This will clear the detected MSFS 2024 " +
+                    "Streamed Packages cache.\n\n" +
+                    "The cached package contents will be moved to the " +
+                    "Backups folder and will not be permanently deleted.\n\n" +
+                    "Microsoft Flight Simulator 2024 should be closed " +
+                    "before continuing.\n\n" +
+                    "The simulator may need to download streamed content " +
+                    "again the next time it is used.\n\n" +
+                    "Do you want to continue?",
+                    "Clear Streamed Packages",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusText.Text =
+                    "Streamed Packages cleanup cancelled.";
+
+                return;
+            }
+
+            ClearStreamedPackages();
+        }
+
+
+        // ---------------------------------------------------------
+        // CLEAR STREAMED PACKAGES
+        // ---------------------------------------------------------
+
+        private void ClearStreamedPackages()
+        {
+            try
+            {
+                StatusText.Text =
+                    "Processing Streamed Packages...";
+
+                List<string> report =
+                    new List<string>();
+
+                BackupResult totalResult =
+                    new BackupResult();
+
+                var cacheLocations =
+                    _cacheManager
+                        .GetStreamedPackagesLocations();
+
+                bool anyCacheExists =
+                    cacheLocations.Exists(
+                        Directory.Exists);
+
+                if (!anyCacheExists)
+                {
+                    StatusText.Text =
+                        "No Streamed Packages folders found.";
+
+                    MessageBox.Show(
+                        "No Streamed Packages cache folders were found " +
+                        "in the known MSFS 2024 locations.",
+                        "Streamed Packages",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                string backupSession =
+                    _backupService.CreateBackupSession();
+
+                report.Add(
+                    "MSFS STREAMED PACKAGES CLEANUP");
+
+                report.Add("");
+
+                foreach (string path in cacheLocations)
+                {
+                    BackupResult result =
+                        _backupService
+                            .MoveDirectoryContentsToBackup(
+                                path,
+                                backupSession,
+                                "StreamedPackages",
+                                report);
+
+                    totalResult.Add(
+                        result);
+                }
+
+                AddCleanupSummary(
+                    report,
+                    totalResult);
+
+                _backupService.SaveReport(
+                    backupSession,
+                    report);
+
+                ShowCleanupResult(
+                    "Streamed Packages",
+                    totalResult);
+
+                DetectCaches();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text =
+                    "Streamed Packages cleanup failed.";
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Streamed Packages Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+
 
         // ---------------------------------------------------------
         // ADD CLEANUP SUMMARY TO REPORT
@@ -973,9 +1218,6 @@ namespace MSFSCacheManager
                 MessageBoxButton.OK,
                 icon);
         }
-
-
-
 
 
         // ---------------------------------------------------------

@@ -446,8 +446,9 @@
 
                             <Button x:Name="DCEButton"
                                     Content="DCE Cache"
-                                    Style="{StaticResource ModernButton}"/>
-
+                                    Style="{StaticResource ModernButton}"
+                                    Click="DCEButton_Click"/>
+                            
                             <Button x:Name="SimObjectsButton"
                                     Content="SimObjects"
                                     Style="{StaticResource ModernButton}"/>
@@ -459,8 +460,9 @@
 
                             <Button x:Name="StreamedPackagesButton"
                                     Content="Streamed Packages"
-                                    Style="{StaticResource ModernButton}"/>
-
+                                    Style="{StaticResource ModernButton}"
+                                    Click="StreamedPackagesButton_Click"/>
+                                    
                             <Button x:Name="WASMButton"
                                     Content="WASM Cache"
                                     Style="{StaticResource ModernButton}"/>
