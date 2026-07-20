@@ -1,6 +1,7 @@
 ﻿using MSFSCacheManager.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -72,6 +73,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will move existing NVIDIA and AMD shader cache folders " +
@@ -286,6 +291,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will move detected MSFS rolling cache files " +
@@ -476,6 +485,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS cache folders.\n\n" +
@@ -671,6 +684,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS Scenery Cache folders.\n\n" +
@@ -791,6 +808,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS Scenery Indexes folders.\n\n" +
@@ -910,6 +931,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS DCE Cache folders.\n\n" +
@@ -1030,6 +1055,10 @@ namespace MSFSCacheManager
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS 2024 " +
@@ -1147,14 +1176,18 @@ namespace MSFSCacheManager
         }
 
         // ---------------------------------------------------------
-// SIMOBJECTS BUTTON
-// ---------------------------------------------------------
+        // SIMOBJECTS BUTTON
+        // ---------------------------------------------------------
 
 private void SimObjectsButton_Click(
     object sender,
     RoutedEventArgs e)
 {
-    MessageBoxResult result =
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
+            MessageBoxResult result =
         MessageBox.Show(
             "This will clear the detected MSFS SimObjects cache folders.\n\n" +
             "Cache contents will be moved to the Backups folder " +
@@ -1275,6 +1308,10 @@ private void ClearSimObjectsCache()
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "This will clear the detected MSFS WASM cache folders.\n\n" +
@@ -1398,6 +1435,10 @@ private void ClearSimObjectsCache()
             object sender,
             RoutedEventArgs e)
         {
+            if (!EnsureMSFSIsClosed())
+            {
+                return;
+            }
             MessageBoxResult result =
                 MessageBox.Show(
                     "CLEAR ALL CACHES\n\n" +
@@ -1440,6 +1481,14 @@ private void ClearSimObjectsCache()
         {
             try
             {
+                if (!EnsureMSFSIsClosed())
+                {
+                    return;
+                }
+
+                StatusText.Text =
+                    "Processing all cache locations...";
+
                 StatusText.Text =
                     "Processing all cache locations...";
 
@@ -1855,6 +1904,62 @@ private void ClearSimObjectsCache()
                 icon);
         }
 
+        // ---------------------------------------------------------
+        // CHECK IF MICROSOFT FLIGHT SIMULATOR IS RUNNING
+        // ---------------------------------------------------------
+
+        private bool IsMSFSRunning()
+        {
+            string[] processNames =
+            {
+        "FlightSimulator",
+        "FlightSimulator2024"
+    };
+
+            foreach (string processName in processNames)
+            {
+                Process[] processes =
+                    Process.GetProcessesByName(
+                        processName);
+
+                if (processes.Length > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        // ---------------------------------------------------------
+        // VERIFY MSFS IS CLOSED
+        // ---------------------------------------------------------
+
+        private bool EnsureMSFSIsClosed()
+        {
+            if (!IsMSFSRunning())
+            {
+                return true;
+            }
+
+            StatusText.Text =
+                "Cleanup blocked - Microsoft Flight Simulator is running.";
+
+            MessageBox.Show(
+                "Microsoft Flight Simulator appears to be running.\n\n" +
+                "Please close MSFS 2020 or MSFS 2024 completely " +
+                "before clearing cache files.\n\n" +
+                "This helps prevent locked files, incomplete backups, " +
+                "or cache files being recreated while cleanup is running.",
+                "Microsoft Flight Simulator Is Running",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+
+            return false;
+        }
+
+
 
         // ---------------------------------------------------------
         // OPEN BACKUPS FOLDER
@@ -1885,3 +1990,5 @@ private void ClearSimObjectsCache()
         }
     }
 }
+
+

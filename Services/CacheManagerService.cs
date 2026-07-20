@@ -432,38 +432,38 @@ namespace MSFSCacheManager.Services
 
         Path.Combine(
             msfs2020StorePackage,
-            "LocalState",
+            "LocalCache",
             "SimObjects"),
 
         // Microsoft Store MSFS 2024
 
         Path.Combine(
             msfs2024StorePackage,
-            "LocalState",
+            "LocalCache",
             "SimObjects")
     };
         }
 
 
         // ---------------------------------------------------------
-        // MSFS WASM CACHE LOCATIONS
-        // ---------------------------------------------------------
+// MSFS WASM CACHE LOCATIONS
+// ---------------------------------------------------------
 
-        public List<string> GetWASMCacheLocations()
-        {
-            string msfs2020StorePackage =
-                Path.Combine(
-                    _localAppData,
-                    "Packages",
-                    "Microsoft.FlightSimulator_8wekyb3d8bbwe");
+public List<string> GetWASMCacheLocations()
+{
+    string msfs2020StorePackage =
+        Path.Combine(
+            _localAppData,
+            "Packages",
+            "Microsoft.FlightSimulator_8wekyb3d8bbwe");
 
-            string msfs2024StorePackage =
-                Path.Combine(
-                    _localAppData,
-                    "Packages",
-                    "Microsoft.Limitless_8wekyb3d8bbwe");
+    string msfs2024StorePackage =
+        Path.Combine(
+            _localAppData,
+            "Packages",
+            "Microsoft.Limitless_8wekyb3d8bbwe");
 
-            return new List<string>
+    return new List<string>
     {
         // Steam / Standard MSFS 2020
 
@@ -497,7 +497,7 @@ namespace MSFSCacheManager.Services
             "Packages",
             "wasm")
     };
-        }
+}
 
 
         // ---------------------------------------------------------
@@ -568,22 +568,73 @@ namespace MSFSCacheManager.Services
 
         public List<string> GetExistingCacheLocations()
         {
-            List<string> allLocations = new();
+            List<string> existingLocations =
+                new List<string>();
 
-            allLocations.AddRange(
+            // -------------------------------------------------
+            // DIRECTORY-BASED CACHE LOCATIONS
+            // -------------------------------------------------
+
+            List<string> directoryLocations =
+                new List<string>();
+
+            directoryLocations.AddRange(
                 GetNvidiaShaderCacheLocations());
 
-            allLocations.AddRange(
+            directoryLocations.AddRange(
                 GetAmdShaderCacheLocations());
 
-            allLocations.AddRange(
+            directoryLocations.AddRange(
                 GetSteamMSFSCacheLocations());
 
-            allLocations.AddRange(
+            directoryLocations.AddRange(
                 GetStoreMSFSCacheLocations());
 
-            return allLocations.FindAll(
-                CacheLocationExists);
+            directoryLocations.AddRange(
+                GetMSFSCacheLocations());
+
+            directoryLocations.AddRange(
+                GetSceneryCacheLocations());
+
+            directoryLocations.AddRange(
+                GetSceneryIndexesLocations());
+
+            directoryLocations.AddRange(
+                GetDCECacheLocations());
+
+            directoryLocations.AddRange(
+                GetStreamedPackagesLocations());
+
+            directoryLocations.AddRange(
+                GetSimObjectsCacheLocations());
+
+            directoryLocations.AddRange(
+                GetWASMCacheLocations());
+
+            foreach (string path in directoryLocations)
+            {
+                if (Directory.Exists(path) &&
+                    !existingLocations.Contains(path))
+                {
+                    existingLocations.Add(path);
+                }
+            }
+
+            // -------------------------------------------------
+            // FILE-BASED CACHE LOCATIONS
+            // -------------------------------------------------
+
+            foreach (string path in GetRollingCacheLocations())
+            {
+                if (File.Exists(path) &&
+                    !existingLocations.Contains(path))
+                {
+                    existingLocations.Add(path);
+                }
+            }
+
+            return existingLocations;
         }
-    }
-}
+
+    } // closes CacheManagerService
+} // closes namespace MSFSCacheManager.Services
