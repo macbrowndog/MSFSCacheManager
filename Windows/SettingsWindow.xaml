@@ -1,0 +1,183 @@
+﻿<Window x:Class="MSFSCacheManager.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Height="650"
+        Width="700"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <Grid Margin="20">
+
+            <Grid.RowDefinitions>
+
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="30"/>
+
+                <RowDefinition Height="Auto"/>
+
+            </Grid.RowDefinitions>
+
+            <!-- ========================================= -->
+            <!-- TITLE                                     -->
+            <!-- ========================================= -->
+
+            <TextBlock
+                Text="⚙ Settings"
+                FontSize="24"
+                FontWeight="Bold"/>
+
+            <!-- ========================================= -->
+            <!-- APPLICATION                               -->
+            <!-- ========================================= -->
+
+            <GroupBox
+                Grid.Row="2"
+                Header="Application">
+
+                <Grid Margin="10">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Version"/>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="1.0"/>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Text="Author"/>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Text="Andrew M Brown"/>
+
+                </Grid>
+
+            </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- MSFS INSTALLATION                         -->
+            <!-- ========================================= -->
+
+            <GroupBox
+                Grid.Row="4"
+                Header="MSFS Installation">
+
+                <Grid Margin="10">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Detection"/>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="Automatic"/>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Text="UserCfg.opt"/>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Text="Not Tested"/>
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Text="Packages Folder"/>
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Text="Not Tested"/>
+
+                </Grid>
+
+            </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- BACKUPS                                   -->
+            <!-- ========================================= -->
+
+            <GroupBox
+                Grid.Row="6"
+                Header="Backups">
+
+                <StackPanel Margin="10">
+
+                    <TextBlock
+                        Text="Backup Folder"/>
+
+                    <TextBox
+                        Margin="0,5,0,10"
+                        Text="Not Configured"/>
+
+                    <Button
+                        Width="120"
+                        Content="Browse..."/>
+
+                </StackPanel>
+
+            </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- BUTTONS                                   -->
+            <!-- ========================================= -->
+
+            <StackPanel
+                Grid.Row="8"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right">
+
+                <Button
+                    Width="120"
+                    Margin="0,0,10,0"
+                    Content="Restore Defaults"/>
+
+                <Button
+                    Width="90"
+                    Margin="0,0,10,0"
+                    Content="Save"/>
+
+                <Button
+                    Width="90"
+                    Content="Cancel"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </ScrollViewer>
+
+</Window>

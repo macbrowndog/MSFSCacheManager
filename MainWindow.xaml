@@ -227,25 +227,35 @@
                 </StackPanel>
 
 
-                <!-- VERSION -->
+                <!-- VERSION + SETTINGS -->
 
-                <Border Grid.Column="1"
-                        Background="#15181D"
-                        BorderBrush="#292E36"
-                        BorderThickness="1"
-                        CornerRadius="14"
-                        Padding="14,6"
-                        VerticalAlignment="Center">
+                <StackPanel Grid.Column="1"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center">
 
-                    <TextBlock Text="VERSION 1.0"
-                               Foreground="#8D96A3"
-                               FontSize="11"
-                               FontWeight="SemiBold"/>
+                    <Border Background="#15181D"
+            BorderBrush="#292E36"
+            BorderThickness="1"
+            CornerRadius="14"
+            Padding="14,6"
+            Margin="0,0,10,0">
 
-                </Border>
+                        <TextBlock Text="VERSION 1.0"
+                   Foreground="#8D96A3"
+                   FontSize="11"
+                   FontWeight="SemiBold"/>
+
+                    </Border>
+
+                    <Button x:Name="SettingsButton"
+            Content="⚙ Settings"
+            Width="100"
+            Height="32"
+            Click="SettingsButton_Click"/>
+                </StackPanel>
 
             </Grid>
-
 
             <!-- ================================================= -->
             <!-- STATUS CARD                                       -->
@@ -508,4 +518,4 @@
 
     </Grid>
 
-</Window>  
+</Window>

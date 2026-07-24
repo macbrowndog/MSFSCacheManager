@@ -1,9 +1,11 @@
-﻿using MSFSCacheManager.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using MSFSCacheManager.Services;
+using MSFSCacheManager.Windows;
+
 
 namespace MSFSCacheManager
 {
@@ -1591,8 +1593,8 @@ private void ClearSimObjectsCache()
         // ---------------------------------------------------------
 
         private void BackupButton_Click(
-            object sender,
-            RoutedEventArgs e)
+     object sender,
+     RoutedEventArgs e)
         {
             try
             {
@@ -1613,7 +1615,21 @@ private void ClearSimObjectsCache()
                     MessageBoxImage.Error);
             }
         }
+
+        // ---------------------------------------------------------
+        // SETTINGS
+        // ---------------------------------------------------------
+
+        private void SettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            SettingsWindow window =
+                new SettingsWindow();
+
+            window.Owner = this;
+
+            window.ShowDialog();
+        }
     }
 }
-
-
