@@ -12,42 +12,25 @@
         <Grid Margin="20">
 
             <Grid.RowDefinitions>
-
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="20"/>
-
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="20"/>
-
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="20"/>
-
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="30"/>
-
                 <RowDefinition Height="Auto"/>
-
             </Grid.RowDefinitions>
 
-            <!-- ========================================= -->
-            <!-- TITLE                                     -->
-            <!-- ========================================= -->
+            <TextBlock Text="⚙ Settings"
+                       FontSize="24"
+                       FontWeight="Bold"/>
 
-            <TextBlock
-                Text="⚙ Settings"
-                FontSize="24"
-                FontWeight="Bold"/>
-
-            <!-- ========================================= -->
-            <!-- APPLICATION                               -->
-            <!-- ========================================= -->
-
-            <GroupBox
-                Grid.Row="2"
-                Header="Application">
+            <GroupBox Grid.Row="2"
+                      Header="Application">
 
                 <Grid Margin="10">
-
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
@@ -60,33 +43,22 @@
 
                     <TextBlock Text="Version"/>
 
-                    <TextBlock
-                        Grid.Column="1"
-                        Text="1.0"/>
+                    <TextBlock Grid.Column="1"
+                               Text="1.0"/>
 
-                    <TextBlock
-                        Grid.Row="1"
-                        Text="Author"/>
+                    <TextBlock Grid.Row="1"
+                               Text="Author"/>
 
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Text="Andrew M Brown"/>
-
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="1"
+                               Text="Andrew M Brown"/>
                 </Grid>
-
             </GroupBox>
 
-            <!-- ========================================= -->
-            <!-- MSFS INSTALLATION                         -->
-            <!-- ========================================= -->
-
-            <GroupBox
-                Grid.Row="4"
-                Header="MSFS Installation">
+            <GroupBox Grid.Row="4"
+                      Header="MSFS Installation">
 
                 <Grid Margin="10">
-
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
@@ -100,84 +72,61 @@
 
                     <TextBlock Text="Detection"/>
 
-                    <TextBlock
-                        Grid.Column="1"
-                        Text="Automatic"/>
+                    <TextBlock Grid.Column="1"
+                               Text="Automatic"/>
 
-                    <TextBlock
-                        Grid.Row="1"
-                        Text="UserCfg.opt"/>
+                    <TextBlock Grid.Row="1"
+                               Text="UserCfg.opt"/>
 
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Text="Not Tested"/>
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="1"
+                               Text="Not tested yet"/>
 
-                    <TextBlock
-                        Grid.Row="2"
-                        Text="Packages Folder"/>
+                    <TextBlock Grid.Row="2"
+                               Text="Packages Folder"/>
 
-                    <TextBlock
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        Text="Not Tested"/>
-
+                    <TextBlock Grid.Row="2"
+                               Grid.Column="1"
+                               Text="Not tested yet"/>
                 </Grid>
-
             </GroupBox>
 
-            <!-- ========================================= -->
-            <!-- BACKUPS                                   -->
-            <!-- ========================================= -->
-
-            <GroupBox
-                Grid.Row="6"
-                Header="Backups">
+            <GroupBox Grid.Row="6"
+                      Header="Backups">
 
                 <StackPanel Margin="10">
 
-                    <TextBlock
-                        Text="Backup Folder"/>
+                    <TextBlock Text="Backup Folder"/>
 
-                    <TextBox
-                        Margin="0,5,0,10"
-                        Text="Not Configured"/>
+                    <TextBox x:Name="BackupFolderTextBox"
+                             Margin="0,5,0,10"/>
 
-                    <Button
-                        Width="120"
-                        Content="Browse..."/>
-
+                    <Button Width="120"
+                            HorizontalAlignment="Left"
+                            Content="Browse..."
+                            Click="BrowseButton_Click"/>
                 </StackPanel>
-
             </GroupBox>
 
-            <!-- ========================================= -->
-            <!-- BUTTONS                                   -->
-            <!-- ========================================= -->
+            <StackPanel Grid.Row="8"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
 
-            <StackPanel
-                Grid.Row="8"
-                Orientation="Horizontal"
-                HorizontalAlignment="Right">
+                <Button Width="120"
+                        Margin="0,0,10,0"
+                        Content="Restore Defaults"
+                        Click="RestoreDefaultsButton_Click"/>
 
-                <Button
-                    Width="120"
-                    Margin="0,0,10,0"
-                    Content="Restore Defaults"/>
+                <Button Width="90"
+                        Margin="0,0,10,0"
+                        Content="Save"
+                        Click="SaveButton_Click"/>
 
-                <Button
-                    Width="90"
-                    Margin="0,0,10,0"
-                    Content="Save"/>
-
-                <Button
-                    Width="90"
-                    Content="Cancel"/>
-
+                <Button Width="90"
+                        Content="Cancel"
+                        Click="CancelButton_Click"/>
             </StackPanel>
 
         </Grid>
-
     </ScrollViewer>
-
 </Window>

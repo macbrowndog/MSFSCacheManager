@@ -7,13 +7,11 @@ namespace MSFSCacheManager.Services
 {
     public class BackupService
     {
-        private readonly string _backupRoot;
+        private readonly SettingsService _settingsService;
 
         public BackupService()
         {
-            _backupRoot = Path.Combine(
-                AppContext.BaseDirectory,
-                "Backups");
+            _settingsService = new SettingsService();
         }
 
         // ---------------------------------------------------------
@@ -22,7 +20,7 @@ namespace MSFSCacheManager.Services
 
         public string GetBackupRoot()
         {
-            return _backupRoot;
+            return _settingsService.Load().BackupFolder;
         }
 
         // ---------------------------------------------------------
@@ -31,7 +29,7 @@ namespace MSFSCacheManager.Services
 
         public void EnsureBackupRootExists()
         {
-            Directory.CreateDirectory(_backupRoot);
+            Directory.CreateDirectory(GetBackupRoot());
         }
 
         // ---------------------------------------------------------
@@ -48,11 +46,8 @@ namespace MSFSCacheManager.Services
 
             string sessionFolder =
                 Path.Combine(
-                    _backupRoot,
+                    GetBackupRoot(),
                     timestamp);
-
-            // Prevent duplicate session folder names
-            // if two operations start in the same second.
 
             if (Directory.Exists(sessionFolder))
             {
@@ -60,8 +55,7 @@ namespace MSFSCacheManager.Services
                     DateTime.Now.ToString("fff");
             }
 
-            Directory.CreateDirectory(
-                sessionFolder);
+            Directory.CreateDirectory(sessionFolder);
 
             return sessionFolder;
         }
@@ -81,8 +75,7 @@ namespace MSFSCacheManager.Services
 
             if (!Directory.Exists(sourcePath))
             {
-                report.Add(
-                    $"NOT FOUND: {sourcePath}");
+                report.Add($"NOT FOUND: {sourcePath}");
 
                 result.NotFoundCount++;
 
@@ -90,12 +83,10 @@ namespace MSFSCacheManager.Services
             }
 
             report.Add("");
-            report.Add(
-                $"SOURCE: {sourcePath}");
+            report.Add($"SOURCE: {sourcePath}");
 
             string sourceFolderName =
-                new DirectoryInfo(
-                    sourcePath).Name;
+                new DirectoryInfo(sourcePath).Name;
 
             string destinationRoot =
                 Path.Combine(
@@ -105,41 +96,30 @@ namespace MSFSCacheManager.Services
 
             try
             {
-                Directory.CreateDirectory(
-                    destinationRoot);
+                Directory.CreateDirectory(destinationRoot);
             }
             catch (Exception ex)
             {
                 report.Add(
                     $"ERROR CREATING BACKUP FOLDER: {destinationRoot}");
 
-                report.Add(
-                    $"   {ex.Message}");
+                report.Add($"   {ex.Message}");
 
                 result.ErrorCount++;
 
                 return result;
             }
 
-            // -----------------------------------------------------
-            // MOVE FILES
-            // -----------------------------------------------------
-
             string[] files;
 
             try
             {
-                files =
-                    Directory.GetFiles(
-                        sourcePath);
+                files = Directory.GetFiles(sourcePath);
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"ERROR READING FILES: {sourcePath}");
-
-                report.Add(
-                    $"   {ex.Message}");
+                report.Add($"ERROR READING FILES: {sourcePath}");
+                report.Add($"   {ex.Message}");
 
                 result.ErrorCount++;
 
@@ -150,59 +130,38 @@ namespace MSFSCacheManager.Services
             {
                 try
                 {
-                    string fileName =
-                        Path.GetFileName(
-                            file);
-
                     string destination =
                         GetUniqueDestinationPath(
                             destinationRoot,
-                            fileName);
+                            Path.GetFileName(file));
 
-                    File.Move(
-                        file,
-                        destination);
+                    File.Move(file, destination);
 
-                    report.Add(
-                        $"MOVED FILE: {file}");
-
-                    report.Add(
-                        $"        TO: {destination}");
+                    report.Add($"MOVED FILE: {file}");
+                    report.Add($"        TO: {destination}");
 
                     result.FilesMoved++;
                 }
                 catch (Exception ex)
                 {
-                    report.Add(
-                        $"SKIPPED FILE: {file}");
-
-                    report.Add(
-                        $"   REASON: {ex.Message}");
+                    report.Add($"SKIPPED FILE: {file}");
+                    report.Add($"   REASON: {ex.Message}");
 
                     result.FilesSkipped++;
                     result.ErrorCount++;
                 }
             }
 
-            // -----------------------------------------------------
-            // MOVE SUBFOLDERS
-            // -----------------------------------------------------
-
             string[] directories;
 
             try
             {
-                directories =
-                    Directory.GetDirectories(
-                        sourcePath);
+                directories = Directory.GetDirectories(sourcePath);
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"ERROR READING SUBFOLDERS: {sourcePath}");
-
-                report.Add(
-                    $"   {ex.Message}");
+                report.Add($"ERROR READING SUBFOLDERS: {sourcePath}");
+                report.Add($"   {ex.Message}");
 
                 result.ErrorCount++;
 
@@ -232,16 +191,12 @@ namespace MSFSCacheManager.Services
             BackupResult result)
         {
             string folderName =
-                new DirectoryInfo(
-                    sourceDirectory).Name;
+                new DirectoryInfo(sourceDirectory).Name;
 
             string destinationDirectory =
                 GetUniqueDestinationPath(
                     destinationParent,
                     folderName);
-
-            // First try moving the whole directory.
-            // This is much faster when no files are locked.
 
             try
             {
@@ -249,11 +204,8 @@ namespace MSFSCacheManager.Services
                     sourceDirectory,
                     destinationDirectory);
 
-                report.Add(
-                    $"MOVED FOLDER: {sourceDirectory}");
-
-                report.Add(
-                    $"          TO: {destinationDirectory}");
+                report.Add($"MOVED FOLDER: {sourceDirectory}");
+                report.Add($"          TO: {destinationDirectory}");
 
                 result.FoldersMoved++;
 
@@ -261,22 +213,17 @@ namespace MSFSCacheManager.Services
             }
             catch
             {
-                // If the complete folder cannot be moved,
-                // process its contents individually.
+                // Move individual contents if the folder is locked.
             }
 
             try
             {
-                Directory.CreateDirectory(
-                    destinationDirectory);
+                Directory.CreateDirectory(destinationDirectory);
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"SKIPPED FOLDER: {sourceDirectory}");
-
-                report.Add(
-                    $"   REASON: {ex.Message}");
+                report.Add($"SKIPPED FOLDER: {sourceDirectory}");
+                report.Add($"   REASON: {ex.Message}");
 
                 result.FoldersSkipped++;
                 result.ErrorCount++;
@@ -284,14 +231,9 @@ namespace MSFSCacheManager.Services
                 return;
             }
 
-            // Move individual files
-
             try
             {
-                foreach (
-                    string file
-                    in Directory.GetFiles(
-                        sourceDirectory))
+                foreach (string file in Directory.GetFiles(sourceDirectory))
                 {
                     try
                     {
@@ -300,25 +242,17 @@ namespace MSFSCacheManager.Services
                                 destinationDirectory,
                                 Path.GetFileName(file));
 
-                        File.Move(
-                            file,
-                            destination);
+                        File.Move(file, destination);
 
-                        report.Add(
-                            $"MOVED FILE: {file}");
-
-                        report.Add(
-                            $"        TO: {destination}");
+                        report.Add($"MOVED FILE: {file}");
+                        report.Add($"        TO: {destination}");
 
                         result.FilesMoved++;
                     }
                     catch (Exception ex)
                     {
-                        report.Add(
-                            $"SKIPPED FILE: {file}");
-
-                        report.Add(
-                            $"   REASON: {ex.Message}");
+                        report.Add($"SKIPPED FILE: {file}");
+                        report.Add($"   REASON: {ex.Message}");
 
                         result.FilesSkipped++;
                         result.ErrorCount++;
@@ -327,23 +261,15 @@ namespace MSFSCacheManager.Services
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"ERROR READING FOLDER: {sourceDirectory}");
-
-                report.Add(
-                    $"   {ex.Message}");
+                report.Add($"ERROR READING FOLDER: {sourceDirectory}");
+                report.Add($"   {ex.Message}");
 
                 result.ErrorCount++;
             }
 
-            // Process nested folders
-
             try
             {
-                foreach (
-                    string subDirectory
-                    in Directory.GetDirectories(
-                        sourceDirectory))
+                foreach (string subDirectory in Directory.GetDirectories(sourceDirectory))
                 {
                     MoveDirectoryRecursive(
                         subDirectory,
@@ -354,25 +280,18 @@ namespace MSFSCacheManager.Services
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"ERROR READING SUBFOLDERS: {sourceDirectory}");
-
-                report.Add(
-                    $"   {ex.Message}");
+                report.Add($"ERROR READING SUBFOLDERS: {sourceDirectory}");
+                report.Add($"   {ex.Message}");
 
                 result.ErrorCount++;
             }
 
-            // Remove empty original folder
-
             try
             {
                 if (Directory.Exists(sourceDirectory) &&
-                    Directory.GetFileSystemEntries(
-                        sourceDirectory).Length == 0)
+                    Directory.GetFileSystemEntries(sourceDirectory).Length == 0)
                 {
-                    Directory.Delete(
-                        sourceDirectory);
+                    Directory.Delete(sourceDirectory);
 
                     result.FoldersMoved++;
                 }
@@ -386,6 +305,7 @@ namespace MSFSCacheManager.Services
                 result.FoldersSkipped++;
             }
         }
+
         // ---------------------------------------------------------
         // MOVE SINGLE FILE TO BACKUP
         // ---------------------------------------------------------
@@ -401,8 +321,7 @@ namespace MSFSCacheManager.Services
 
             if (!File.Exists(sourcePath))
             {
-                report.Add(
-                    $"NOT FOUND: {sourcePath}");
+                report.Add($"NOT FOUND: {sourcePath}");
 
                 result.NotFoundCount++;
 
@@ -416,37 +335,24 @@ namespace MSFSCacheManager.Services
                         backupSession,
                         category);
 
-                Directory.CreateDirectory(
-                    destinationFolder);
-
-                string fileName =
-                    Path.GetFileName(
-                        sourcePath);
+                Directory.CreateDirectory(destinationFolder);
 
                 string destinationPath =
                     GetUniqueDestinationPath(
                         destinationFolder,
-                        fileName);
+                        Path.GetFileName(sourcePath));
 
-                File.Move(
-                    sourcePath,
-                    destinationPath);
+                File.Move(sourcePath, destinationPath);
 
-                report.Add(
-                    $"MOVED FILE: {sourcePath}");
-
-                report.Add(
-                    $"        TO: {destinationPath}");
+                report.Add($"MOVED FILE: {sourcePath}");
+                report.Add($"        TO: {destinationPath}");
 
                 result.FilesMoved++;
             }
             catch (Exception ex)
             {
-                report.Add(
-                    $"SKIPPED FILE: {sourcePath}");
-
-                report.Add(
-                    $"   REASON: {ex.Message}");
+                report.Add($"SKIPPED FILE: {sourcePath}");
+                report.Add($"   REASON: {ex.Message}");
 
                 result.FilesSkipped++;
                 result.ErrorCount++;
@@ -454,8 +360,6 @@ namespace MSFSCacheManager.Services
 
             return result;
         }
-
-
 
         // ---------------------------------------------------------
         // UNIQUE DESTINATION
@@ -466,9 +370,7 @@ namespace MSFSCacheManager.Services
             string name)
         {
             string destination =
-                Path.Combine(
-                    destinationFolder,
-                    name);
+                Path.Combine(destinationFolder, name);
 
             if (!Directory.Exists(destination) &&
                 !File.Exists(destination))
@@ -477,16 +379,13 @@ namespace MSFSCacheManager.Services
             }
 
             string fileName =
-                Path.GetFileNameWithoutExtension(
-                    name);
+                Path.GetFileNameWithoutExtension(name);
 
             string extension =
-                Path.GetExtension(
-                    name);
+                Path.GetExtension(name);
 
             string timestamp =
-                DateTime.Now.ToString(
-                    "HH-mm-ss-fff");
+                DateTime.Now.ToString("HH-mm-ss-fff");
 
             return Path.Combine(
                 destinationFolder,
@@ -517,12 +416,9 @@ namespace MSFSCacheManager.Services
                 ""
             };
 
-            output.AddRange(
-                report);
+            output.AddRange(report);
 
-            File.WriteAllLines(
-                reportPath,
-                output);
+            File.WriteAllLines(reportPath, output);
         }
 
         // ---------------------------------------------------------
@@ -536,7 +432,7 @@ namespace MSFSCacheManager.Services
             Process.Start(
                 new ProcessStartInfo
                 {
-                    FileName = _backupRoot,
+                    FileName = GetBackupRoot(),
                     UseShellExecute = true
                 });
         }
@@ -560,26 +456,14 @@ namespace MSFSCacheManager.Services
 
         public int ErrorCount { get; set; }
 
-        public void Add(
-            BackupResult other)
+        public void Add(BackupResult other)
         {
-            FilesMoved +=
-                other.FilesMoved;
-
-            FilesSkipped +=
-                other.FilesSkipped;
-
-            FoldersMoved +=
-                other.FoldersMoved;
-
-            FoldersSkipped +=
-                other.FoldersSkipped;
-
-            NotFoundCount +=
-                other.NotFoundCount;
-
-            ErrorCount +=
-                other.ErrorCount;
+            FilesMoved += other.FilesMoved;
+            FilesSkipped += other.FilesSkipped;
+            FoldersMoved += other.FoldersMoved;
+            FoldersSkipped += other.FoldersSkipped;
+            NotFoundCount += other.NotFoundCount;
+            ErrorCount += other.ErrorCount;
         }
     }
 }
