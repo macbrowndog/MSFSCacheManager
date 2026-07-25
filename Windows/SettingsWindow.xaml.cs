@@ -23,24 +23,29 @@ namespace MSFSCacheManager.Windows
             LoadInstallationInformation();
         }
 
+        // ---------------------------------------------------------
+        // LOAD SETTINGS
+        // ---------------------------------------------------------
+
         private void LoadSettings()
         {
             AppSettings settings = _settingsService.Load();
 
-            BackupFolderTextBox.Text = settings.BackupFolder;
+            BackupFolderTextBox.Text =
+                settings.BackupFolder;
 
             PackagesFolderOverrideTextBox.Text =
                 settings.PackagesFolderOverride;
         }
 
+        // ---------------------------------------------------------
+        // LOAD MSFS INSTALLATION INFORMATION
+        // ---------------------------------------------------------
+
         private void LoadInstallationInformation()
         {
             string? userCfgPath =
                 _installationService.GetUserCfgPath();
-
-            string? automaticPackagesPath =
-                _installationService
-                    .GetAutomaticallyDetectedPackagesPath();
 
             string? activePackagesPath =
                 _installationService.GetInstalledPackagesPath();
@@ -61,14 +66,16 @@ namespace MSFSCacheManager.Windows
                 DetectionStatusText.Text =
                     "MSFS 2024 not detected";
 
-                UserCfgPathText.Text = "Not found";
+                UserCfgPathText.Text =
+                    "Not found";
             }
             else
             {
                 DetectionStatusText.Text =
                     "MSFS 2024 detected";
 
-                UserCfgPathText.Text = userCfgPath;
+                UserCfgPathText.Text =
+                    userCfgPath;
             }
 
             PackagesPathText.Text =
@@ -76,6 +83,10 @@ namespace MSFSCacheManager.Windows
                     ? "Not found"
                     : activePackagesPath;
         }
+
+        // ---------------------------------------------------------
+        // BROWSE PACKAGES FOLDER
+        // ---------------------------------------------------------
 
         private void BrowsePackagesButton_Click(
             object sender,
@@ -95,6 +106,10 @@ namespace MSFSCacheManager.Windows
             }
         }
 
+        // ---------------------------------------------------------
+        // BROWSE BACKUP FOLDER
+        // ---------------------------------------------------------
+
         private void BrowseBackupButton_Click(
             object sender,
             RoutedEventArgs e)
@@ -102,14 +117,20 @@ namespace MSFSCacheManager.Windows
             OpenFolderDialog dialog = new OpenFolderDialog
             {
                 Title = "Choose Backup Folder",
-                InitialDirectory = BackupFolderTextBox.Text
+                InitialDirectory =
+                    BackupFolderTextBox.Text
             };
 
             if (dialog.ShowDialog() == true)
             {
-                BackupFolderTextBox.Text = dialog.FolderName;
+                BackupFolderTextBox.Text =
+                    dialog.FolderName;
             }
         }
+
+        // ---------------------------------------------------------
+        // RESTORE DEFAULTS
+        // ---------------------------------------------------------
 
         private void RestoreDefaultsButton_Click(
             object sender,
@@ -118,12 +139,17 @@ namespace MSFSCacheManager.Windows
             AppSettings defaults =
                 _settingsService.CreateDefaultSettings();
 
-            BackupFolderTextBox.Text = defaults.BackupFolder;
+            BackupFolderTextBox.Text =
+                defaults.BackupFolder;
 
             PackagesFolderOverrideTextBox.Text = "";
 
             LoadInstallationInformation();
         }
+
+        // ---------------------------------------------------------
+        // SAVE SETTINGS
+        // ---------------------------------------------------------
 
         private void SaveButton_Click(
             object sender,
@@ -166,10 +192,12 @@ namespace MSFSCacheManager.Windows
                     new AppSettings
                     {
                         BackupFolder = backupFolder,
-                        PackagesFolderOverride = packagesOverride
+                        PackagesFolderOverride =
+                            packagesOverride
                     });
 
                 DialogResult = true;
+
                 Close();
             }
             catch (Exception ex)
@@ -181,6 +209,26 @@ namespace MSFSCacheManager.Windows
                     MessageBoxImage.Error);
             }
         }
+
+        // ---------------------------------------------------------
+        // ABOUT WINDOW
+        // ---------------------------------------------------------
+
+        private void AboutButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            AboutWindow aboutWindow =
+                new AboutWindow();
+
+            aboutWindow.Owner = this;
+
+            aboutWindow.ShowDialog();
+        }
+
+        // ---------------------------------------------------------
+        // CANCEL
+        // ---------------------------------------------------------
 
         private void CancelButton_Click(
             object sender,

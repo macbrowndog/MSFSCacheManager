@@ -23,17 +23,28 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- ========================================= -->
+            <!-- TITLE                                     -->
+            <!-- ========================================= -->
+
             <TextBlock Text="⚙ Settings"
                        FontSize="24"
                        FontWeight="Bold"/>
+
+            <!-- ========================================= -->
+            <!-- APPLICATION                               -->
+            <!-- ========================================= -->
 
             <GroupBox Grid.Row="2"
                       Header="Application">
 
                 <Grid Margin="10">
+
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Grid.ColumnDefinitions>
@@ -52,8 +63,20 @@
                     <TextBlock Grid.Row="1"
                                Grid.Column="1"
                                Text="Andrew M Brown"/>
+
+                    <Button Grid.Row="3"
+                            Grid.ColumnSpan="2"
+                            Width="170"
+                            HorizontalAlignment="Left"
+                            Content="About MSFS Cache Manager"
+                            Click="AboutButton_Click"/>
+
                 </Grid>
             </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- MSFS INSTALLATION                         -->
+            <!-- ========================================= -->
 
             <GroupBox Grid.Row="4"
                       Header="MSFS Installation">
@@ -102,8 +125,13 @@
                             HorizontalAlignment="Left"
                             Content="Browse..."
                             Click="BrowsePackagesButton_Click"/>
+
                 </StackPanel>
             </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- BACKUPS                                   -->
+            <!-- ========================================= -->
 
             <GroupBox Grid.Row="6"
                       Header="Backups">
@@ -119,8 +147,13 @@
                             HorizontalAlignment="Left"
                             Content="Browse..."
                             Click="BrowseBackupButton_Click"/>
+
                 </StackPanel>
             </GroupBox>
+
+            <!-- ========================================= -->
+            <!-- BUTTONS                                   -->
+            <!-- ========================================= -->
 
             <StackPanel Grid.Row="8"
                         Orientation="Horizontal"
@@ -139,6 +172,7 @@
                 <Button Width="90"
                         Content="Cancel"
                         Click="CancelButton_Click"/>
+
             </StackPanel>
 
         </Grid>
