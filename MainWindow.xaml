@@ -241,7 +241,7 @@
             Padding="14,6"
             Margin="0,0,10,0">
 
-                        <TextBlock Text="VERSION 1.0"
+                        <TextBlock Text="VERSION 1.1"
                    Foreground="#8D96A3"
                    FontSize="11"
                    FontWeight="SemiBold"/>
@@ -506,7 +506,7 @@
             <Grid Grid.Row="6">
 
                 <TextBlock
-        Text="MSFS Cache Manager • Version 1.0 • Andrew M Brown • © 2026"
+        Text="MSFS Cache Manager • Version 1.1 • Andrew M Brown • © 2026"
         Foreground="#515966"
         FontSize="11"
         HorizontalAlignment="Left"/>

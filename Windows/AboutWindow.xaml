@@ -129,7 +129,7 @@
 
                             <StackPanel>
 
-                                <TextBlock Text="Version 1.0"
+                                <TextBlock Text="Version 1.1"
                                            Foreground="#F4F6F8"
                                            FontWeight="SemiBold"/>
 
@@ -145,7 +145,7 @@
                             </StackPanel>
 
                             <TextBlock Grid.Column="1"
-                                       Text="VERSION 1.0"
+                                       Text="VERSION 1.1"
                                        VerticalAlignment="Center"
                                        Foreground="#8EC5FF"
                                        FontSize="11"
