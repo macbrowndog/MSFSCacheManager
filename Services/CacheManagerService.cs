@@ -10,6 +10,7 @@ namespace MSFSCacheManager.Services
         private readonly string _localAppData;
         private readonly string _roamingAppData;
         private readonly string _userProfile;
+        private readonly InstallationService _installationService;
 
         public CacheManagerService()
         {
@@ -24,6 +25,9 @@ namespace MSFSCacheManager.Services
             _userProfile =
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.UserProfile);
+
+            _installationService =
+                new InstallationService();
         }
 
         // ---------------------------------------------------------
@@ -34,7 +38,9 @@ namespace MSFSCacheManager.Services
         {
             return new List<string>
             {
-                Path.Combine(_localAppData, "D3DSCache"),
+                Path.Combine(
+                    _localAppData,
+                    "D3DSCache"),
 
                 Path.Combine(
                     _localAppData,
@@ -194,14 +200,10 @@ namespace MSFSCacheManager.Services
                 Path.Combine(
                     msfs2024Package,
                     "LocalCache",
-                    "SceneryIndexes"),
-
-                Path.Combine(
-                    msfs2024Package,
-                    "LocalState",
-                    "StreamedPackages")
+                    "SceneryIndexes")
             };
         }
+
         // ---------------------------------------------------------
         // MSFS GENERAL CACHE LOCATIONS
         // ---------------------------------------------------------
@@ -221,37 +223,36 @@ namespace MSFSCacheManager.Services
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "cache"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "cache"),
 
-        // Steam / Standard MSFS 2024
+                // Steam / Standard MSFS 2024
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "cache"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "cache"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalState",
-            "cache"),
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalState",
+                    "cache"),
 
-        // Microsoft Store MSFS 2024
+                // Microsoft Store MSFS 2024
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalState",
-            "Cache")
-    };
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalState",
+                    "Cache")
+            };
         }
-
 
         // ---------------------------------------------------------
         // MSFS SCENERY CACHE LOCATIONS
@@ -266,23 +267,22 @@ namespace MSFSCacheManager.Services
                     "Microsoft.FlightSimulator_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "SceneryCache"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "SceneryCache"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalCache",
-            "SceneryCache")
-    };
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalCache",
+                    "SceneryCache")
+            };
         }
-
 
         // ---------------------------------------------------------
         // MSFS SCENERY INDEX LOCATIONS
@@ -303,36 +303,37 @@ namespace MSFSCacheManager.Services
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "SceneryIndexes"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "SceneryIndexes"),
 
-        // Steam / Standard MSFS 2024
+                // Steam / Standard MSFS 2024
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "SceneryIndexes"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "SceneryIndexes"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalCache",
-            "SceneryIndexes"),
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalCache",
+                    "SceneryIndexes"),
 
-        // Microsoft Store MSFS 2024
+                // Microsoft Store MSFS 2024
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalCache",
-            "SceneryIndexes")
-    };
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalCache",
+                    "SceneryIndexes")
+            };
         }
+
         // ---------------------------------------------------------
         // MSFS 2020 DCE CACHE LOCATIONS
         // ---------------------------------------------------------
@@ -346,21 +347,21 @@ namespace MSFSCacheManager.Services
                     "Microsoft.FlightSimulator_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "DCE"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "DCE"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalState",
-            "DCE")
-    };
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalState",
+                    "DCE")
+            };
         }
 
         // ---------------------------------------------------------
@@ -369,33 +370,52 @@ namespace MSFSCacheManager.Services
 
         public List<string> GetStreamedPackagesLocations()
         {
+            List<string> locations =
+                new List<string>();
+
+            // Steam / Standard MSFS 2024
+
+            AddUniqueLocation(
+                locations,
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "Packages",
+                    "StreamedPackages"));
+
+            // Microsoft Store MSFS 2024 fallback location
+
             string msfs2024StorePackage =
                 Path.Combine(
                     _localAppData,
                     "Packages",
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
-            return new List<string>
-    {
-        // Steam / Standard MSFS 2024
+            AddUniqueLocation(
+                locations,
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalCache",
+                    "Packages",
+                    "StreamedPackages"));
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "Packages",
-            "StreamedPackages"),
+            // Custom Packages folder detected from UserCfg.opt.
+            // Example:
+            // D:\MSFS2024\Packages\StreamedPackages
 
-        // Microsoft Store MSFS 2024
-        // Verified location:
-        // ...\Microsoft.Limitless_8wekyb3d8bbwe
-        //    \LocalCache\Packages\StreamedPackages
+            string? installedPackagesPath =
+                _installationService.GetInstalledPackagesPath();
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalCache",
-            "Packages",
-            "StreamedPackages")
-    };
+            if (!string.IsNullOrWhiteSpace(installedPackagesPath))
+            {
+                AddUniqueLocation(
+                    locations,
+                    Path.Combine(
+                        installedPackagesPath,
+                        "StreamedPackages"));
+            }
+
+            return locations;
         }
 
         // ---------------------------------------------------------
@@ -417,37 +437,36 @@ namespace MSFSCacheManager.Services
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "SimObjects"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "SimObjects"),
 
-        // Steam / Standard MSFS 2024
+                // Steam / Standard MSFS 2024
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "SimObjects"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "SimObjects"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalCache",
-            "SimObjects"),
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalCache",
+                    "SimObjects"),
 
-        // Microsoft Store MSFS 2024
+                // Microsoft Store MSFS 2024
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalCache",
-            "SimObjects")
-    };
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalCache",
+                    "SimObjects")
+            };
         }
-
 
         // ---------------------------------------------------------
         // MSFS WASM CACHE LOCATIONS
@@ -468,42 +487,41 @@ namespace MSFSCacheManager.Services
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / Standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "Packages",
-            "wasm"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "Packages",
+                    "wasm"),
 
-        // Steam / Standard MSFS 2024
+                // Steam / Standard MSFS 2024
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "Packages",
-            "wasm"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "Packages",
+                    "wasm"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalState",
-            "Packages",
-            "wasm"),
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalState",
+                    "Packages",
+                    "wasm"),
 
-        // Microsoft Store MSFS 2024
-        // Verified location:
-        // ...\Microsoft.Limitless_8wekyb3d8bbwe\LocalState\WASM
+                // Microsoft Store MSFS 2024
+                // Verified:
+                // ...\Microsoft.Limitless_8wekyb3d8bbwe\LocalState\WASM
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalState",
-            "WASM")
-    };
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalState",
+                    "WASM")
+            };
         }
-
 
         // ---------------------------------------------------------
         // MSFS ROLLING CACHE FILE LOCATIONS
@@ -524,38 +542,36 @@ namespace MSFSCacheManager.Services
                     "Microsoft.Limitless_8wekyb3d8bbwe");
 
             return new List<string>
-    {
-        // Steam / standard MSFS 2020
+            {
+                // Steam / Standard MSFS 2020
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator",
-            "ROLLINGCACHE.CCC"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator",
+                    "ROLLINGCACHE.CCC"),
 
-        // Steam / standard MSFS 2024
+                // Steam / Standard MSFS 2024
 
-        Path.Combine(
-            _roamingAppData,
-            "Microsoft Flight Simulator 2024",
-            "ROLLINGCACHE.CCC"),
+                Path.Combine(
+                    _roamingAppData,
+                    "Microsoft Flight Simulator 2024",
+                    "ROLLINGCACHE.CCC"),
 
-        // Microsoft Store MSFS 2020
+                // Microsoft Store MSFS 2020
 
-        Path.Combine(
-            msfs2020StorePackage,
-            "LocalCache",
-            "ROLLINGCACHE.CCC"),
+                Path.Combine(
+                    msfs2020StorePackage,
+                    "LocalCache",
+                    "ROLLINGCACHE.CCC"),
 
-        // Microsoft Store MSFS 2024
+                // Microsoft Store MSFS 2024
 
-        Path.Combine(
-            msfs2024StorePackage,
-            "LocalCache",
-            "ROLLINGCACHE.CCC")
-    };
+                Path.Combine(
+                    msfs2024StorePackage,
+                    "LocalCache",
+                    "ROLLINGCACHE.CCC")
+            };
         }
-
-
 
         // ---------------------------------------------------------
         // CHECK IF A CACHE LOCATION EXISTS
@@ -575,10 +591,6 @@ namespace MSFSCacheManager.Services
         {
             List<string> existingLocations =
                 new List<string>();
-
-            // -------------------------------------------------
-            // DIRECTORY-BASED CACHE LOCATIONS
-            // -------------------------------------------------
 
             List<string> directoryLocations =
                 new List<string>();
@@ -618,28 +630,47 @@ namespace MSFSCacheManager.Services
 
             foreach (string path in directoryLocations)
             {
-                if (Directory.Exists(path) &&
-                    !existingLocations.Contains(path))
+                if (Directory.Exists(path))
                 {
-                    existingLocations.Add(path);
+                    AddUniqueLocation(
+                        existingLocations,
+                        path);
                 }
             }
 
-            // -------------------------------------------------
-            // FILE-BASED CACHE LOCATIONS
-            // -------------------------------------------------
-
             foreach (string path in GetRollingCacheLocations())
             {
-                if (File.Exists(path) &&
-                    !existingLocations.Contains(path))
+                if (File.Exists(path))
                 {
-                    existingLocations.Add(path);
+                    AddUniqueLocation(
+                        existingLocations,
+                        path);
                 }
             }
 
             return existingLocations;
         }
 
-    } // closes CacheManagerService
-} // closes namespace MSFSCacheManager.Services
+        // ---------------------------------------------------------
+        // ADD UNIQUE LOCATION
+        // ---------------------------------------------------------
+
+        private void AddUniqueLocation(
+            List<string> locations,
+            string location)
+        {
+            foreach (string existingLocation in locations)
+            {
+                if (string.Equals(
+                    existingLocation,
+                    location,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            locations.Add(location);
+        }
+    }
+}
