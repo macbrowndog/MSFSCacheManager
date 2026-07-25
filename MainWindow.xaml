@@ -398,6 +398,11 @@
                             Style="{StaticResource ToolButton}"
                             Click="BackupButton_Click"/>
 
+                    <Button x:Name="BackupManagerButton"
+                            Content="Manage Backup Sessions"
+                            Style="{StaticResource ToolButton}"
+                             Click="BackupManagerButton_Click"/>
+
                 </StackPanel>
 
 

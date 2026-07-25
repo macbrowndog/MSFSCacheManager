@@ -1586,15 +1586,13 @@ private void ClearSimObjectsCache()
             return false;
         }
 
-
-
         // ---------------------------------------------------------
         // OPEN BACKUPS FOLDER
         // ---------------------------------------------------------
 
         private void BackupButton_Click(
-     object sender,
-     RoutedEventArgs e)
+            object sender,
+            RoutedEventArgs e)
         {
             try
             {
@@ -1614,6 +1612,22 @@ private void ClearSimObjectsCache()
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
+        }
+
+        // ---------------------------------------------------------
+        // BACKUP MANAGER
+        // ---------------------------------------------------------
+
+        private void BackupManagerButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            BackupManagerWindow backupManagerWindow =
+                new BackupManagerWindow(_backupService);
+
+            backupManagerWindow.Owner = this;
+
+            backupManagerWindow.ShowDialog();
         }
 
         // ---------------------------------------------------------
