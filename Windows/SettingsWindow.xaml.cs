@@ -28,6 +28,9 @@ namespace MSFSCacheManager.Windows
             AppSettings settings = _settingsService.Load();
 
             BackupFolderTextBox.Text = settings.BackupFolder;
+
+            PackagesFolderOverrideTextBox.Text =
+                settings.PackagesFolderOverride;
         }
 
         private void LoadInstallationInformation()
@@ -35,28 +38,64 @@ namespace MSFSCacheManager.Windows
             string? userCfgPath =
                 _installationService.GetUserCfgPath();
 
-            string? packagesPath =
+            string? automaticPackagesPath =
+                _installationService
+                    .GetAutomaticallyDetectedPackagesPath();
+
+            string? activePackagesPath =
                 _installationService.GetInstalledPackagesPath();
 
-            if (string.IsNullOrWhiteSpace(userCfgPath))
+            if (!string.IsNullOrWhiteSpace(
+                PackagesFolderOverrideTextBox.Text))
             {
-                DetectionStatusText.Text = "MSFS 2024 not detected";
-                UserCfgPathText.Text = "Not found";
-                PackagesPathText.Text = "Not found";
+                DetectionStatusText.Text =
+                    "Manual folder override";
 
-                return;
+                UserCfgPathText.Text =
+                    string.IsNullOrWhiteSpace(userCfgPath)
+                        ? "Automatic UserCfg.opt not found"
+                        : userCfgPath;
+            }
+            else if (string.IsNullOrWhiteSpace(userCfgPath))
+            {
+                DetectionStatusText.Text =
+                    "MSFS 2024 not detected";
+
+                UserCfgPathText.Text = "Not found";
+            }
+            else
+            {
+                DetectionStatusText.Text =
+                    "MSFS 2024 detected";
+
+                UserCfgPathText.Text = userCfgPath;
             }
 
-            DetectionStatusText.Text = "MSFS 2024 detected";
-            UserCfgPathText.Text = userCfgPath;
-
             PackagesPathText.Text =
-                string.IsNullOrWhiteSpace(packagesPath)
-                    ? "InstalledPackagesPath not found"
-                    : packagesPath;
+                string.IsNullOrWhiteSpace(activePackagesPath)
+                    ? "Not found"
+                    : activePackagesPath;
         }
 
-        private void BrowseButton_Click(
+        private void BrowsePackagesButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenFolderDialog dialog = new OpenFolderDialog
+            {
+                Title = "Choose MSFS Packages Folder",
+                InitialDirectory =
+                    PackagesFolderOverrideTextBox.Text
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                PackagesFolderOverrideTextBox.Text =
+                    dialog.FolderName;
+            }
+        }
+
+        private void BrowseBackupButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -80,6 +119,10 @@ namespace MSFSCacheManager.Windows
                 _settingsService.CreateDefaultSettings();
 
             BackupFolderTextBox.Text = defaults.BackupFolder;
+
+            PackagesFolderOverrideTextBox.Text = "";
+
+            LoadInstallationInformation();
         }
 
         private void SaveButton_Click(
@@ -89,11 +132,26 @@ namespace MSFSCacheManager.Windows
             string backupFolder =
                 BackupFolderTextBox.Text.Trim();
 
+            string packagesOverride =
+                PackagesFolderOverrideTextBox.Text.Trim();
+
             if (string.IsNullOrWhiteSpace(backupFolder))
             {
                 MessageBox.Show(
                     "Please choose a backup folder.",
                     "Backup Folder Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(packagesOverride) &&
+                !Directory.Exists(packagesOverride))
+            {
+                MessageBox.Show(
+                    "The selected MSFS Packages folder does not exist.",
+                    "Packages Folder Not Found",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -107,7 +165,8 @@ namespace MSFSCacheManager.Windows
                 _settingsService.Save(
                     new AppSettings
                     {
-                        BackupFolder = backupFolder
+                        BackupFolder = backupFolder,
+                        PackagesFolderOverride = packagesOverride
                     });
 
                 DialogResult = true;

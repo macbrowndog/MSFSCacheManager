@@ -13,6 +13,13 @@ namespace MSFSCacheManager.Services
             Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData);
 
+        private readonly SettingsService _settingsService;
+
+        public InstallationService()
+        {
+            _settingsService = new SettingsService();
+        }
+
         public string LocalAppData => _localAppData;
 
         public string RoamingAppData => _roamingAppData;
@@ -23,8 +30,6 @@ namespace MSFSCacheManager.Services
 
         public string? GetUserCfgPath()
         {
-            // Microsoft Store
-
             string storePath =
                 Path.Combine(
                     _localAppData,
@@ -37,8 +42,6 @@ namespace MSFSCacheManager.Services
             {
                 return storePath;
             }
-
-            // Steam
 
             string steamPath =
                 Path.Combine(
@@ -54,20 +57,16 @@ namespace MSFSCacheManager.Services
             return null;
         }
 
-        // ---------------------------------------------------------
-        // HAS USERCFG?
-        // ---------------------------------------------------------
-
         public bool HasUserCfg()
         {
             return GetUserCfgPath() != null;
         }
 
         // ---------------------------------------------------------
-        // INSTALLED PACKAGES PATH
+        // AUTOMATICALLY DETECTED PACKAGES FOLDER
         // ---------------------------------------------------------
 
-        public string? GetInstalledPackagesPath()
+        public string? GetAutomaticallyDetectedPackagesPath()
         {
             string? userCfgPath = GetUserCfgPath();
 
@@ -78,22 +77,44 @@ namespace MSFSCacheManager.Services
 
             foreach (string line in File.ReadAllLines(userCfgPath))
             {
-                if (line.TrimStart().StartsWith("InstalledPackagesPath"))
+                if (!line.TrimStart()
+                    .StartsWith("InstalledPackagesPath"))
                 {
-                    int firstQuote = line.IndexOf('"');
-                    int lastQuote = line.LastIndexOf('"');
+                    continue;
+                }
 
-                    if (firstQuote >= 0 &&
-                        lastQuote > firstQuote)
-                    {
-                        return line.Substring(
-                            firstQuote + 1,
-                            lastQuote - firstQuote - 1);
-                    }
+                int firstQuote = line.IndexOf('"');
+                int lastQuote = line.LastIndexOf('"');
+
+                if (firstQuote >= 0 &&
+                    lastQuote > firstQuote)
+                {
+                    return line.Substring(
+                        firstQuote + 1,
+                        lastQuote - firstQuote - 1);
                 }
             }
 
             return null;
+        }
+
+        // ---------------------------------------------------------
+        // ACTIVE PACKAGES FOLDER
+        // ---------------------------------------------------------
+
+        public string? GetInstalledPackagesPath()
+        {
+            string manualOverride =
+                _settingsService.Load()
+                    .PackagesFolderOverride;
+
+            if (!string.IsNullOrWhiteSpace(manualOverride) &&
+                Directory.Exists(manualOverride))
+            {
+                return manualOverride;
+            }
+
+            return GetAutomaticallyDetectedPackagesPath();
         }
     }
 }
