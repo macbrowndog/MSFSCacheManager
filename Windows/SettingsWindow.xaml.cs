@@ -10,14 +10,17 @@ namespace MSFSCacheManager.Windows
     public partial class SettingsWindow : Window
     {
         private readonly SettingsService _settingsService;
+        private readonly InstallationService _installationService;
 
         public SettingsWindow()
         {
             InitializeComponent();
 
             _settingsService = new SettingsService();
+            _installationService = new InstallationService();
 
             LoadSettings();
+            LoadInstallationInformation();
         }
 
         private void LoadSettings()
@@ -25,6 +28,32 @@ namespace MSFSCacheManager.Windows
             AppSettings settings = _settingsService.Load();
 
             BackupFolderTextBox.Text = settings.BackupFolder;
+        }
+
+        private void LoadInstallationInformation()
+        {
+            string? userCfgPath =
+                _installationService.GetUserCfgPath();
+
+            string? packagesPath =
+                _installationService.GetInstalledPackagesPath();
+
+            if (string.IsNullOrWhiteSpace(userCfgPath))
+            {
+                DetectionStatusText.Text = "MSFS 2024 not detected";
+                UserCfgPathText.Text = "Not found";
+                PackagesPathText.Text = "Not found";
+
+                return;
+            }
+
+            DetectionStatusText.Text = "MSFS 2024 detected";
+            UserCfgPathText.Text = userCfgPath;
+
+            PackagesPathText.Text =
+                string.IsNullOrWhiteSpace(packagesPath)
+                    ? "InstalledPackagesPath not found"
+                    : packagesPath;
         }
 
         private void BrowseButton_Click(

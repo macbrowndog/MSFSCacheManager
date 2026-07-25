@@ -61,7 +61,9 @@
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
 
@@ -72,22 +74,27 @@
 
                     <TextBlock Text="Detection"/>
 
-                    <TextBlock Grid.Column="1"
-                               Text="Automatic"/>
+                    <TextBlock x:Name="DetectionStatusText"
+                               Grid.Column="1"
+                               Text="Checking..."/>
 
-                    <TextBlock Grid.Row="1"
+                    <TextBlock Grid.Row="2"
                                Text="UserCfg.opt"/>
 
-                    <TextBlock Grid.Row="1"
+                    <TextBlock x:Name="UserCfgPathText"
+                               Grid.Row="2"
                                Grid.Column="1"
-                               Text="Not tested yet"/>
+                               Text="Checking..."
+                               TextWrapping="Wrap"/>
 
-                    <TextBlock Grid.Row="2"
+                    <TextBlock Grid.Row="4"
                                Text="Packages Folder"/>
 
-                    <TextBlock Grid.Row="2"
+                    <TextBlock x:Name="PackagesPathText"
+                               Grid.Row="4"
                                Grid.Column="1"
-                               Text="Not tested yet"/>
+                               Text="Checking..."
+                               TextWrapping="Wrap"/>
                 </Grid>
             </GroupBox>
 
