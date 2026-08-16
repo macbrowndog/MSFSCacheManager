@@ -584,6 +584,39 @@ namespace MSFSCacheManager.Services
         }
 
         // ---------------------------------------------------------
+        // GET ALL KNOWN CACHE LOCATIONS
+        // ---------------------------------------------------------
+
+        public List<string> GetAllCacheLocations()
+        {
+            List<string> locations = new();
+
+            foreach (List<string> cacheGroup in new[]
+            {
+                GetNvidiaShaderCacheLocations(),
+                GetAmdShaderCacheLocations(),
+                GetSteamMSFSCacheLocations(),
+                GetStoreMSFSCacheLocations(),
+                GetMSFSCacheLocations(),
+                GetSceneryCacheLocations(),
+                GetSceneryIndexesLocations(),
+                GetDCECacheLocations(),
+                GetStreamedPackagesLocations(),
+                GetSimObjectsCacheLocations(),
+                GetWASMCacheLocations(),
+                GetRollingCacheLocations()
+            })
+            {
+                foreach (string path in cacheGroup)
+                {
+                    AddUniqueLocation(locations, path);
+                }
+            }
+
+            return locations;
+        }
+
+        // ---------------------------------------------------------
         // GET ALL EXISTING CACHE LOCATIONS
         // ---------------------------------------------------------
 
@@ -592,55 +625,9 @@ namespace MSFSCacheManager.Services
             List<string> existingLocations =
                 new List<string>();
 
-            List<string> directoryLocations =
-                new List<string>();
-
-            directoryLocations.AddRange(
-                GetNvidiaShaderCacheLocations());
-
-            directoryLocations.AddRange(
-                GetAmdShaderCacheLocations());
-
-            directoryLocations.AddRange(
-                GetSteamMSFSCacheLocations());
-
-            directoryLocations.AddRange(
-                GetStoreMSFSCacheLocations());
-
-            directoryLocations.AddRange(
-                GetMSFSCacheLocations());
-
-            directoryLocations.AddRange(
-                GetSceneryCacheLocations());
-
-            directoryLocations.AddRange(
-                GetSceneryIndexesLocations());
-
-            directoryLocations.AddRange(
-                GetDCECacheLocations());
-
-            directoryLocations.AddRange(
-                GetStreamedPackagesLocations());
-
-            directoryLocations.AddRange(
-                GetSimObjectsCacheLocations());
-
-            directoryLocations.AddRange(
-                GetWASMCacheLocations());
-
-            foreach (string path in directoryLocations)
+            foreach (string path in GetAllCacheLocations())
             {
-                if (Directory.Exists(path))
-                {
-                    AddUniqueLocation(
-                        existingLocations,
-                        path);
-                }
-            }
-
-            foreach (string path in GetRollingCacheLocations())
-            {
-                if (File.Exists(path))
+                if (CacheLocationExists(path))
                 {
                     AddUniqueLocation(
                         existingLocations,

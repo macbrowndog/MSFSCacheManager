@@ -2,6 +2,7 @@
 using MSFSCacheManager.Models;
 using MSFSCacheManager.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 
@@ -186,6 +187,42 @@ namespace MSFSCacheManager.Windows
 
             try
             {
+                CacheManagerService cacheManager =
+                    new CacheManagerService();
+
+                List<string> protectedPaths =
+                    cacheManager.GetAllCacheLocations();
+
+                if (!string.IsNullOrWhiteSpace(packagesOverride))
+                {
+                    protectedPaths.Add(
+                        Path.Combine(
+                            packagesOverride,
+                            "StreamedPackages"));
+                }
+
+                foreach (string cachePath in protectedPaths)
+                {
+                    if (!PathSafetyService.PathsOverlap(
+                            backupFolder,
+                            cachePath))
+                    {
+                        continue;
+                    }
+
+                    MessageBox.Show(
+                        "The backup folder cannot be the same as, inside, " +
+                        "or contain a managed cache location.\n\n" +
+                        $"Backup folder:\n{backupFolder}\n\n" +
+                        $"Conflicting cache location:\n{cachePath}\n\n" +
+                        "Please choose a separate backup folder.",
+                        "Unsafe Backup Folder",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    return;
+                }
+
                 Directory.CreateDirectory(backupFolder);
 
                 _settingsService.Save(

@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore Tests\MSFSCacheManager.Tests.csproj
+
+      - name: Test
+        run: dotnet test Tests\MSFSCacheManager.Tests.csproj --configuration Release --no-restore
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".Substring(1)
+          dotnet publish MSFSCacheManager.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:Version=$version `
+            --output artifacts\publish
+          Copy-Item README.md artifacts\publish\README.md
+          if (Test-Path LICENSE) {
+            Copy-Item LICENSE artifacts\publish\LICENSE
+          }
+          Compress-Archive `
+            -Path artifacts\publish\* `
+            -DestinationPath "artifacts\MSFSCacheManager-${{ github.ref_name }}-win-x64.zip"
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${{ github.ref_name }}"
+          "artifacts\MSFSCacheManager-${{ github.ref_name }}-win-x64.zip"
+          --verify-tag
+          --generate-notes
+          --title "MSFS Cache Manager ${{ github.ref_name }}"

@@ -214,7 +214,7 @@
                             <TextBlock Text="Version"
                                        Style="{StaticResource FieldLabel}"/>
 
-                            <TextBlock Text="1.1"
+                            <TextBlock Text="2.0"
                                        Margin="0,4,0,0"
                                        Foreground="#E8EAED"/>
                         </StackPanel>

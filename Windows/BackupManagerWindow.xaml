@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Backup Manager"
         Height="680"
-        Width="980"
+        Width="1120"
         MinHeight="540"
-        MinWidth="800"
+        MinWidth="980"
         WindowStartupLocation="CenterOwner"
         Background="#0B0D10"
         Foreground="#E8EAED"
@@ -268,7 +268,7 @@
                                FontSize="28"
                                FontWeight="SemiBold"/>
 
-                    <TextBlock Text="Review backup sessions and their cleanup reports."
+                    <TextBlock Text="Review backup sessions, inspect reports, and restore cached data."
                                Foreground="#7F8997"
                                FontSize="14"
                                Margin="1,5,0,0"/>
@@ -329,17 +329,55 @@
 
             <Grid Grid.Row="4">
 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Backup sessions are retained until manually removed."
+                <Grid x:Name="RestoreProgressPanel"
+                      Grid.ColumnSpan="2"
+                      Visibility="Collapsed">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <ProgressBar Height="6"
+                                     IsIndeterminate="True"/>
+
+                        <TextBlock x:Name="RestoreProgressText"
+                                   Margin="0,7,12,0"
+                                   Foreground="#8A94A6"
+                                   FontSize="11"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <Button x:Name="CancelRestoreButton"
+                            Grid.Column="1"
+                            Width="105"
+                            Content="Cancel"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="CancelRestoreButton_Click"/>
+
+                </Grid>
+
+                <TextBlock Grid.Row="2"
+                           Text="Restore never overwrites files already in the active location."
                            Foreground="#7F8997"
                            FontSize="12"
                            VerticalAlignment="Center"/>
 
-                <StackPanel Grid.Column="1"
+                <StackPanel x:Name="SessionActionsPanel"
+                            Grid.Row="2"
+                            Grid.Column="1"
                             Orientation="Horizontal">
 
                     <Button Width="105"
@@ -360,9 +398,17 @@
                             Style="{StaticResource SecondaryButton}"
                             Click="OpenReportButton_Click"/>
 
+                    <Button x:Name="RestoreButton"
+                            Width="135"
+                            Margin="0,0,10,0"
+                            Content="Restore Session"
+                            IsEnabled="False"
+                            Style="{StaticResource PrimaryButton}"
+                            Click="RestoreButton_Click"/>
+
                     <Button Width="90"
                             Content="Close"
-                            Style="{StaticResource PrimaryButton}"
+                            Style="{StaticResource SecondaryButton}"
                             Click="CloseButton_Click"/>
 
                 </StackPanel>

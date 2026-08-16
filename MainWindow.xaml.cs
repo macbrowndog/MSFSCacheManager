@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using MSFSCacheManager.Models;
 using MSFSCacheManager.Services;
 using MSFSCacheManager.Windows;
 
@@ -13,6 +16,11 @@ namespace MSFSCacheManager
     {
         private readonly CacheManagerService _cacheManager;
         private readonly BackupService _backupService;
+        private readonly CleanupCoordinator _cleanupCoordinator;
+        private readonly CacheCleanupDefinitionFactory _cleanupDefinitions;
+        private readonly CacheScanService _cacheScanService;
+        private CancellationTokenSource? _operationCancellation;
+        private int _processedItems;
 
         public MainWindow()
         {
@@ -24,12 +32,143 @@ namespace MSFSCacheManager
             _backupService =
                 new BackupService();
 
+            _cleanupCoordinator =
+                new CleanupCoordinator(_backupService);
+
+            _cleanupDefinitions =
+                new CacheCleanupDefinitionFactory(_cacheManager);
+
+            _cacheScanService =
+                new CacheScanService(_cleanupDefinitions);
+
             DetectCaches();
         }
 
-        // ---------------------------------------------------------
-        // DETECT CACHES
-        // ---------------------------------------------------------
+        private async Task RunOperationAsync(
+            Func<CancellationToken, IProgress<BackupProgress>, Task> operation)
+        {
+            if (_operationCancellation != null)
+            {
+                return;
+            }
+
+            _operationCancellation = new CancellationTokenSource();
+            _processedItems = 0;
+
+            OperationsPanel.IsEnabled = false;
+            SettingsButton.IsEnabled = false;
+            OperationProgressPanel.Visibility = Visibility.Visible;
+            OperationProgressBar.IsIndeterminate = true;
+            CancelOperationButton.IsEnabled = true;
+            OperationDetailText.Text = "Preparing operation...";
+            StatusIndicatorText.Text = "●  WORKING";
+            StatusIndicatorText.Foreground =
+                new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(22, 131, 216));
+
+            Progress<BackupProgress> progress = new(update =>
+            {
+                _processedItems += update.ItemsProcessed;
+
+                StatusText.Text =
+                    $"Processing cache data — {_processedItems} item(s) processed.";
+
+                OperationDetailText.Text = update.CurrentPath;
+            });
+
+            try
+            {
+                await operation(
+                    _operationCancellation.Token,
+                    progress);
+            }
+            catch (OperationCanceledException)
+            {
+                StatusText.Text =
+                    $"Operation cancelled after {_processedItems} item(s).";
+
+                MessageBox.Show(
+                    "The operation was cancelled. Items already moved remain " +
+                    "safely recorded in the backup manifest and can be restored.",
+                    "Operation Cancelled",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            finally
+            {
+                _operationCancellation.Dispose();
+                _operationCancellation = null;
+
+                OperationsPanel.IsEnabled = true;
+                SettingsButton.IsEnabled = true;
+                OperationProgressPanel.Visibility = Visibility.Collapsed;
+                StatusIndicatorText.Text = "●  READY";
+                StatusIndicatorText.Foreground =
+                    new System.Windows.Media.SolidColorBrush(
+                        System.Windows.Media.Color.FromRgb(70, 199, 120));
+            }
+        }
+
+        private void CancelOperationButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            CancelOperationButton.IsEnabled = false;
+            OperationDetailText.Text =
+                "Cancelling after the current file operation...";
+
+            _operationCancellation?.Cancel();
+        }
+
+        private async Task ExecuteCleanupAsync(
+            CacheCleanupDefinition definition,
+            CancellationToken cancellationToken,
+            IProgress<BackupProgress> progress)
+        {
+            try
+            {
+                StatusText.Text = definition.ProcessingStatus;
+
+                CacheCleanupResult outcome = await
+                    _cleanupCoordinator.ExecuteAsync(
+                        definition,
+                        progress,
+                        cancellationToken);
+
+                if (!outcome.FoundAnyCache)
+                {
+                    StatusText.Text = definition.EmptyStatus;
+
+                    MessageBox.Show(
+                        definition.EmptyMessage,
+                        definition.EmptyTitle,
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    return;
+                }
+
+                ShowCleanupResult(
+                    definition.OperationName,
+                    outcome.BackupResult);
+
+                DetectCaches();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = definition.FailureStatus;
+
+                MessageBox.Show(
+                    ex.Message,
+                    definition.FailureTitle,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
 
         private void DetectCaches()
         {
@@ -52,26 +191,38 @@ namespace MSFSCacheManager
         // SCAN CACHE LOCATIONS
         // ---------------------------------------------------------
 
-        private void ScanButton_Click(
+        private async void ScanButton_Click(
             object sender,
             RoutedEventArgs e)
         {
-            var caches =
-                _cacheManager.GetExistingCacheLocations();
+            await RunOperationAsync(
+                async (cancellationToken, progress) =>
+                {
+                    StatusText.Text = "Scanning cache locations...";
+                    OperationDetailText.Text =
+                        "Checking known MSFS and GPU cache paths...";
 
-            CacheScanWindow scanWindow =
-                new CacheScanWindow(caches);
+                    var caches = await Task.Run(
+                        () => _cacheScanService.Scan(
+                            progress,
+                            cancellationToken),
+                        cancellationToken);
 
-            scanWindow.Owner = this;
+                    cancellationToken.ThrowIfCancellationRequested();
 
-            scanWindow.ShowDialog();
+                    CacheScanWindow scanWindow =
+                        new CacheScanWindow(caches);
+
+                    scanWindow.Owner = this;
+                    scanWindow.ShowDialog();
+                });
         }
 
         // ---------------------------------------------------------
         // GPU SHADER CACHE
         // ---------------------------------------------------------
 
-        private void ShaderCacheButton_Click(
+        private async void ShaderCacheButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -99,197 +250,18 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearGpuShaderCaches();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateGpuCleanup(),
+                    token,
+                    progress));
         }
 
         // ---------------------------------------------------------
-        // CLEAR GPU SHADER CACHES
+        // ROLLING CACHE
         // ---------------------------------------------------------
 
-        private void ClearGpuShaderCaches()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing GPU shader caches...";
-
-                List<string> report = new();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                // -------------------------------------------------
-                // GET CACHE LOCATIONS
-                // -------------------------------------------------
-
-                var nvidiaCaches =
-                    _cacheManager.GetNvidiaShaderCacheLocations();
-
-                var amdCaches =
-                    _cacheManager.GetAmdShaderCacheLocations();
-
-                // -------------------------------------------------
-                // CHECK IF ANY CACHE EXISTS
-                // -------------------------------------------------
-
-                bool anyCacheExists =
-                    nvidiaCaches.Exists(
-                        Directory.Exists) ||
-                    amdCaches.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No GPU shader cache folders found.";
-
-                    MessageBox.Show(
-                        "No NVIDIA or AMD shader cache folders " +
-                        "were found on this computer.",
-                        "GPU Shader Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                // -------------------------------------------------
-                // CREATE BACKUP SESSION
-                // -------------------------------------------------
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "GPU SHADER CACHE CLEANUP");
-
-                report.Add("");
-
-                // -------------------------------------------------
-                // NVIDIA
-                // -------------------------------------------------
-
-                report.Add(
-                    "=== NVIDIA SHADER CACHES ===");
-
-                foreach (string path in nvidiaCaches)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "NVIDIA",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                // -------------------------------------------------
-                // AMD
-                // -------------------------------------------------
-
-                report.Add("");
-                report.Add(
-                    "=== AMD SHADER CACHES ===");
-
-                foreach (string path in amdCaches)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "AMD",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                // -------------------------------------------------
-                // SUMMARY
-                // -------------------------------------------------
-
-                report.Add("");
-                report.Add(
-                    "=== SUMMARY ===");
-
-                report.Add(
-                    $"Files moved: {totalResult.FilesMoved}");
-
-                report.Add(
-                    $"Files skipped: {totalResult.FilesSkipped}");
-
-                report.Add(
-                    $"Folders moved: {totalResult.FoldersMoved}");
-
-                report.Add(
-                    $"Folders skipped: {totalResult.FoldersSkipped}");
-
-                report.Add(
-                    $"Locations not found: {totalResult.NotFoundCount}");
-
-                report.Add(
-                    $"Errors: {totalResult.ErrorCount}");
-
-                // -------------------------------------------------
-                // SAVE REPORT
-                // -------------------------------------------------
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                // -------------------------------------------------
-                // RESULT
-                // -------------------------------------------------
-
-                StatusText.Text =
-                    $"GPU shader cache complete. " +
-                    $"{totalResult.FilesMoved} files backed up.";
-
-                MessageBoxImage messageIcon =
-                    totalResult.ErrorCount > 0
-                        ? MessageBoxImage.Warning
-                        : MessageBoxImage.Information;
-
-                MessageBox.Show(
-                    $"GPU shader cache processing completed.\n\n" +
-                    $"Files moved: {totalResult.FilesMoved}\n" +
-                    $"Files skipped: {totalResult.FilesSkipped}\n" +
-                    $"Folders moved: {totalResult.FoldersMoved}\n" +
-                    $"Folders skipped: {totalResult.FoldersSkipped}\n" +
-                    $"Errors: {totalResult.ErrorCount}\n\n" +
-                    $"A detailed backup report was created.",
-                    "GPU Shader Cache Complete",
-                    MessageBoxButton.OK,
-                    messageIcon);
-
-                // -------------------------------------------------
-                // RESCAN
-                // -------------------------------------------------
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "GPU shader cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "GPU Shader Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        // ---------------------------------------------------------
-        // ROLLING CACHE BUTTON
-        // ---------------------------------------------------------
-
-        private void RollingCacheButton_Click(
+        private async void RollingCacheButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -317,173 +289,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearRollingCaches();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateRollingCacheCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR ROLLING CACHE
+        // MSFS CACHE
         // ---------------------------------------------------------
 
-        private void ClearRollingCaches()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Searching for MSFS rolling cache files...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var rollingCaches =
-                    _cacheManager.GetRollingCacheLocations();
-
-                // -------------------------------------------------
-                // CHECK FOR EXISTING FILES
-                // -------------------------------------------------
-
-                bool anyCacheExists =
-                    rollingCaches.Exists(
-                        File.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No rolling cache files found.";
-
-                    MessageBox.Show(
-                        "No ROLLINGCACHE.CCC files were found " +
-                        "in the known MSFS locations.",
-                        "MSFS Rolling Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                // -------------------------------------------------
-                // CREATE BACKUP SESSION
-                // -------------------------------------------------
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS ROLLING CACHE CLEANUP");
-
-                report.Add("");
-
-                // -------------------------------------------------
-                // PROCESS FILES
-                // -------------------------------------------------
-
-                foreach (string path in rollingCaches)
-                {
-                    BackupResult result =
-                        _backupService.MoveFileToBackup(
-                            path,
-                            backupSession,
-                            "RollingCache",
-                            report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                // -------------------------------------------------
-                // SUMMARY
-                // -------------------------------------------------
-
-                report.Add("");
-                report.Add(
-                    "=== SUMMARY ===");
-
-                report.Add(
-                    $"Rolling cache files moved: " +
-                    $"{totalResult.FilesMoved}");
-
-                report.Add(
-                    $"Files skipped: " +
-                    $"{totalResult.FilesSkipped}");
-
-                report.Add(
-                    $"Locations not found: " +
-                    $"{totalResult.NotFoundCount}");
-
-                report.Add(
-                    $"Errors: " +
-                    $"{totalResult.ErrorCount}");
-
-                // -------------------------------------------------
-                // SAVE REPORT
-                // -------------------------------------------------
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                // -------------------------------------------------
-                // UPDATE STATUS
-                // -------------------------------------------------
-
-                if (totalResult.ErrorCount == 0)
-                {
-                    StatusText.Text =
-                        $"Rolling cache complete. " +
-                        $"{totalResult.FilesMoved} file(s) backed up.";
-                }
-                else
-                {
-                    StatusText.Text =
-                        $"Rolling cache completed with " +
-                        $"{totalResult.ErrorCount} error(s).";
-                }
-
-                // -------------------------------------------------
-                // SHOW RESULTS
-                // -------------------------------------------------
-
-                MessageBoxImage icon =
-                    totalResult.ErrorCount > 0
-                        ? MessageBoxImage.Warning
-                        : MessageBoxImage.Information;
-
-                MessageBox.Show(
-                    $"Rolling cache processing completed.\n\n" +
-                    $"Files moved: {totalResult.FilesMoved}\n" +
-                    $"Files skipped: {totalResult.FilesSkipped}\n" +
-                    $"Errors: {totalResult.ErrorCount}\n\n" +
-                    $"A backup and detailed report were created.",
-                    "MSFS Rolling Cache Complete",
-                    MessageBoxButton.OK,
-                    icon);
-
-                // -------------------------------------------------
-                // RESCAN
-                // -------------------------------------------------
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "Rolling cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "Rolling Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        // ---------------------------------------------------------
-        // MSFS CACHE BUTTON
-        // ---------------------------------------------------------
-
-        private void MSFSCacheButton_Click(
+        private async void MSFSCacheButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -511,178 +329,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearMSFSCaches();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateMsfsCacheCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR MSFS CACHE
+        // SCENERY CACHE
         // ---------------------------------------------------------
 
-        private void ClearMSFSCaches()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing MSFS cache folders...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager.GetMSFSCacheLocations();
-
-                // -------------------------------------------------
-                // CHECK FOR EXISTING CACHE FOLDERS
-                // -------------------------------------------------
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No MSFS cache folders found.";
-
-                    MessageBox.Show(
-                        "No MSFS cache folders were found " +
-                        "in the known locations.",
-                        "MSFS Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                // -------------------------------------------------
-                // CREATE BACKUP SESSION
-                // -------------------------------------------------
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS CACHE CLEANUP");
-
-                report.Add("");
-
-                // -------------------------------------------------
-                // PROCESS CACHE LOCATIONS
-                // -------------------------------------------------
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "MSFSCache",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                // -------------------------------------------------
-                // SUMMARY
-                // -------------------------------------------------
-
-                report.Add("");
-                report.Add(
-                    "=== SUMMARY ===");
-
-                report.Add(
-                    $"Files moved: {totalResult.FilesMoved}");
-
-                report.Add(
-                    $"Files skipped: {totalResult.FilesSkipped}");
-
-                report.Add(
-                    $"Folders moved: {totalResult.FoldersMoved}");
-
-                report.Add(
-                    $"Folders skipped: {totalResult.FoldersSkipped}");
-
-                report.Add(
-                    $"Locations not found: {totalResult.NotFoundCount}");
-
-                report.Add(
-                    $"Errors: {totalResult.ErrorCount}");
-
-                // -------------------------------------------------
-                // SAVE REPORT
-                // -------------------------------------------------
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                // -------------------------------------------------
-                // STATUS
-                // -------------------------------------------------
-
-                if (totalResult.ErrorCount == 0)
-                {
-                    StatusText.Text =
-                        $"MSFS cache complete. " +
-                        $"{totalResult.FilesMoved} file(s) backed up.";
-                }
-                else
-                {
-                    StatusText.Text =
-                        $"MSFS cache completed with " +
-                        $"{totalResult.ErrorCount} error(s).";
-                }
-
-                // -------------------------------------------------
-                // RESULT MESSAGE
-                // -------------------------------------------------
-
-                MessageBoxImage icon =
-                    totalResult.ErrorCount > 0
-                        ? MessageBoxImage.Warning
-                        : MessageBoxImage.Information;
-
-                MessageBox.Show(
-                    $"MSFS cache processing completed.\n\n" +
-                    $"Files moved: {totalResult.FilesMoved}\n" +
-                    $"Files skipped: {totalResult.FilesSkipped}\n" +
-                    $"Folders moved: {totalResult.FoldersMoved}\n" +
-                    $"Folders skipped: {totalResult.FoldersSkipped}\n" +
-                    $"Errors: {totalResult.ErrorCount}\n\n" +
-                    $"A backup and detailed report were created.",
-                    "MSFS Cache Complete",
-                    MessageBoxButton.OK,
-                    icon);
-
-                // -------------------------------------------------
-                // RESCAN
-                // -------------------------------------------------
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "MSFS cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "MSFS Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        // ---------------------------------------------------------
-        // SCENERY CACHE BUTTON
-        // ---------------------------------------------------------
-
-        private void SceneryCacheButton_Click(
+        private async void SceneryCacheButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -712,103 +371,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearSceneryCache();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateSceneryCacheCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR SCENERY CACHE
+        // SCENERY INDEXES
         // ---------------------------------------------------------
 
-        private void ClearSceneryCache()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing Scenery Cache...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager.GetSceneryCacheLocations();
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No Scenery Cache folders found.";
-
-                    MessageBox.Show(
-                        "No Scenery Cache folders were found " +
-                        "in the known MSFS locations.",
-                        "Scenery Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS SCENERY CACHE CLEANUP");
-
-                report.Add("");
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "SceneryCache",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                AddCleanupSummary(
-                    report,
-                    totalResult);
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                ShowCleanupResult(
-                    "Scenery Cache",
-                    totalResult);
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "Scenery Cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "Scenery Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-        // ---------------------------------------------------------
-        // SCENERY INDEXES BUTTON
-        // ---------------------------------------------------------
-
-        private void SceneryIndexesButton_Click(
+        private async void SceneryIndexesButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -839,102 +414,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearSceneryIndexes();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateSceneryIndexesCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR SCENERY INDEXES
+        // DCE CACHE
         // ---------------------------------------------------------
 
-        private void ClearSceneryIndexes()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing Scenery Indexes...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager.GetSceneryIndexesLocations();
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No Scenery Indexes folders found.";
-
-                    MessageBox.Show(
-                        "No Scenery Indexes folders were found " +
-                        "in the known MSFS locations.",
-                        "Scenery Indexes",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS SCENERY INDEXES CLEANUP");
-
-                report.Add("");
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "SceneryIndexes",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                AddCleanupSummary(
-                    report,
-                    totalResult);
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                ShowCleanupResult(
-                    "Scenery Indexes",
-                    totalResult);
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "Scenery Indexes cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "Scenery Indexes Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        // ---------------------------------------------------------
-        // DCE CACHE BUTTON
-        // ---------------------------------------------------------
-
-        private void DCEButton_Click(
+        private async void DCEButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -964,106 +456,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearDCECache();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateDceCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR DCE CACHE
+        // STREAMED PACKAGES
         // ---------------------------------------------------------
 
-        private void ClearDCECache()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing DCE Cache...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager.GetDCECacheLocations();
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No DCE Cache folders found.";
-
-                    MessageBox.Show(
-     "No MSFS 2020 DCE cache folder was found.\n\n" +
-     "DCE cache cleanup applies to Microsoft Flight Simulator 2020 only.",
-     "DCE Cache",
-     MessageBoxButton.OK,
-     MessageBoxImage.Information);
-
-                    StatusText.Text =
-                        "No MSFS 2020 DCE cache folder found.";
-
-                    return;
-                }
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS DCE CACHE CLEANUP");
-
-                report.Add("");
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "DCECache",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                AddCleanupSummary(
-                    report,
-                    totalResult);
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                ShowCleanupResult(
-                    "DCE Cache",
-                    totalResult);
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "DCE Cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "DCE Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-        // ---------------------------------------------------------
-        // STREAMED PACKAGES BUTTON
-        // ---------------------------------------------------------
-
-        private void StreamedPackagesButton_Click(
+        private async void StreamedPackagesButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -1096,104 +501,19 @@ namespace MSFSCacheManager
                 return;
             }
 
-            ClearStreamedPackages();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateStreamedPackagesCleanup(),
+                    token,
+                    progress));
         }
 
 
         // ---------------------------------------------------------
-        // CLEAR STREAMED PACKAGES
+        // SIMOBJECTS CACHE
         // ---------------------------------------------------------
 
-        private void ClearStreamedPackages()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing Streamed Packages...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager
-                        .GetStreamedPackagesLocations();
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No Streamed Packages folders found.";
-
-                    MessageBox.Show(
-                        "No Streamed Packages cache folders were found " +
-                        "in the known MSFS 2024 locations.",
-                        "Streamed Packages",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS STREAMED PACKAGES CLEANUP");
-
-                report.Add("");
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "StreamedPackages",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                AddCleanupSummary(
-                    report,
-                    totalResult);
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                ShowCleanupResult(
-                    "Streamed Packages",
-                    totalResult);
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "Streamed Packages cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "Streamed Packages Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-        // ---------------------------------------------------------
-        // SIMOBJECTS BUTTON
-        // ---------------------------------------------------------
-
-private void SimObjectsButton_Click(
+private async void SimObjectsButton_Click(
     object sender,
     RoutedEventArgs e)
 {
@@ -1235,104 +555,19 @@ private void SimObjectsButton_Click(
                 return;
             }
 
-            ClearSimObjectsCache();
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateSimObjectsCleanup(),
+                    token,
+                    progress));
         }
 
 
 // ---------------------------------------------------------
-// CLEAR SIMOBJECTS CACHE
+        // WASM CACHE
 // ---------------------------------------------------------
 
-private void ClearSimObjectsCache()
-{
-    try
-    {
-        StatusText.Text =
-            "Processing SimObjects Cache...";
-
-        List<string> report =
-            new List<string>();
-
-        BackupResult totalResult =
-            new BackupResult();
-
-        var cacheLocations =
-            _cacheManager
-                .GetSimObjectsCacheLocations();
-
-        bool anyCacheExists =
-            cacheLocations.Exists(
-                Directory.Exists);
-
-        if (!anyCacheExists)
-        {
-            StatusText.Text =
-                "No SimObjects cache folders found.";
-
-            MessageBox.Show(
-                "No SimObjects cache folders were found " +
-                "in the known MSFS locations.",
-                "SimObjects Cache",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-
-            return;
-        }
-
-        string backupSession =
-            _backupService.CreateBackupSession();
-
-        report.Add(
-            "MSFS SIMOBJECTS CACHE CLEANUP");
-
-        report.Add("");
-
-        foreach (string path in cacheLocations)
-        {
-            BackupResult result =
-                _backupService
-                    .MoveDirectoryContentsToBackup(
-                        path,
-                        backupSession,
-                        "SimObjects",
-                        report);
-
-            totalResult.Add(
-                result);
-        }
-
-        AddCleanupSummary(
-            report,
-            totalResult);
-
-        _backupService.SaveReport(
-            backupSession,
-            report);
-
-        ShowCleanupResult(
-            "SimObjects Cache",
-            totalResult);
-
-        DetectCaches();
-    }
-    catch (Exception ex)
-    {
-        StatusText.Text =
-            "SimObjects cleanup failed.";
-
-        MessageBox.Show(
-            ex.Message,
-            "SimObjects Cache Error",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
-    }
-}
-
-        // ---------------------------------------------------------
-        // WASM CACHE BUTTON
-        // ---------------------------------------------------------
-
-        private void WASMButton_Click(
+        private async void WASMButton_Click(
             object sender,
             RoutedEventArgs e)
         {
@@ -1364,131 +599,11 @@ private void ClearSimObjectsCache()
                 return;
             }
 
-            ClearWASMCache();
-        }
-
-
-        // ---------------------------------------------------------
-        // CLEAR WASM CACHE
-        // ---------------------------------------------------------
-
-        private void ClearWASMCache()
-        {
-            try
-            {
-                StatusText.Text =
-                    "Processing WASM Cache...";
-
-                List<string> report =
-                    new List<string>();
-
-                BackupResult totalResult =
-                    new BackupResult();
-
-                var cacheLocations =
-                    _cacheManager
-                        .GetWASMCacheLocations();
-
-                bool anyCacheExists =
-                    cacheLocations.Exists(
-                        Directory.Exists);
-
-                if (!anyCacheExists)
-                {
-                    StatusText.Text =
-                        "No WASM cache folders found.";
-
-                    MessageBox.Show(
-                        "No WASM cache folders were found " +
-                        "in the known MSFS locations.",
-                        "WASM Cache",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    return;
-                }
-
-                string backupSession =
-                    _backupService.CreateBackupSession();
-
-                report.Add(
-                    "MSFS WASM CACHE CLEANUP");
-
-                report.Add("");
-
-                foreach (string path in cacheLocations)
-                {
-                    BackupResult result =
-                        _backupService
-                            .MoveDirectoryContentsToBackup(
-                                path,
-                                backupSession,
-                                "WASMCache",
-                                report);
-
-                    totalResult.Add(
-                        result);
-                }
-
-                AddCleanupSummary(
-                    report,
-                    totalResult);
-
-                _backupService.SaveReport(
-                    backupSession,
-                    report);
-
-                ShowCleanupResult(
-                    "WASM Cache",
-                    totalResult);
-
-                DetectCaches();
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text =
-                    "WASM Cache cleanup failed.";
-
-                MessageBox.Show(
-                    ex.Message,
-                    "WASM Cache Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-
-                     
-
-
-        // ---------------------------------------------------------
-        // ADD CLEANUP SUMMARY TO REPORT
-        // ---------------------------------------------------------
-
-        private void AddCleanupSummary(
-            List<string> report,
-            BackupResult result)
-        {
-            report.Add("");
-            report.Add(
-                "=== SUMMARY ===");
-
-            report.Add(
-                $"Files moved: {result.FilesMoved}");
-
-            report.Add(
-                $"Files skipped: {result.FilesSkipped}");
-
-            report.Add(
-                $"Folders moved: {result.FoldersMoved}");
-
-            report.Add(
-                $"Folders skipped: {result.FoldersSkipped}");
-
-            report.Add(
-                $"Locations not found: {result.NotFoundCount}");
-
-            report.Add(
-                $"Errors: {result.ErrorCount}");
+            await RunOperationAsync(
+                (token, progress) => ExecuteCleanupAsync(
+                    _cleanupDefinitions.CreateWasmCleanup(),
+                    token,
+                    progress));
         }
 
 

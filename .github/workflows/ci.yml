@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-package:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore Tests\MSFSCacheManager.Tests.csproj
+
+      - name: Test
+        run: dotnet test Tests\MSFSCacheManager.Tests.csproj --configuration Release --no-restore
+
+      - name: Publish self-contained Windows build
+        run: >-
+          dotnet publish MSFSCacheManager.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output artifacts\win-x64
+
+      - name: Upload packaged build
+        uses: actions/upload-artifact@v7
+        with:
+          name: MSFSCacheManager-win-x64
+          path: artifacts\win-x64
+          if-no-files-found: error

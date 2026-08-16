@@ -5,18 +5,27 @@ namespace MSFSCacheManager.Services
 {
     public class InstallationService
     {
-        private readonly string _localAppData =
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.LocalApplicationData);
+        private readonly string _localAppData;
 
-        private readonly string _roamingAppData =
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.ApplicationData);
+        private readonly string _roamingAppData;
 
         private readonly SettingsService _settingsService;
 
         public InstallationService()
+            : this(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.ApplicationData))
         {
+        }
+
+        internal InstallationService(
+            string localAppData,
+            string roamingAppData)
+        {
+            _localAppData = localAppData;
+            _roamingAppData = roamingAppData;
             _settingsService = new SettingsService();
         }
 
