@@ -116,7 +116,7 @@ namespace MSFSCacheManager.Services
                 "SimObjects Cache", "SimObjects cleanup failed.",
                 "SimObjects Cache Error");
 
-        public CacheCleanupDefinition CreateWasmCleanup() =>
+        public CacheCleanupDefinition CreateWasmScan() =>
             CreateDirectoryDefinition(
                 "WASM Cache", "MSFS WASM CACHE CLEANUP", "WASMCache",
                 _cacheManager.GetWASMCacheLocations(), "Processing WASM Cache...",
@@ -124,6 +124,49 @@ namespace MSFSCacheManager.Services
                 "No WASM Cache folders were found in the known MSFS locations.",
                 "WASM Cache", "WASM Cache cleanup failed.", "WASM Cache Error");
 
+        // WASM directories include persistent aircraft data. Never bulk-clean them.
+        public CacheCleanupDefinition CreateWasmCleanup()
+        {
+            CacheCleanupDefinition definition = CreateWasmScan();
+            definition.Groups.Clear();
+            definition.EmptyStatus = "WASM cleanup is disabled to preserve aircraft data.";
+            definition.EmptyMessage = definition.EmptyStatus;
+            return definition;
+        }
+        public CacheCleanupDefinition CreateWasmLooseFilesCleanup(string version)
+        {
+            if (version != "MSFS2020" && version != "MSFS2024")
+                throw new System.ArgumentException("Unknown WASM version.", nameof(version));
+            string folder = System.IO.Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                "Packages", "Microsoft.Limitless_8wekyb3d8bbwe", "LocalState", "WASM", version);
+            return CreateWasmLooseFilesCleanup(version, folder);
+        }
+
+        internal CacheCleanupDefinition CreateWasmLooseFilesCleanup(string version, string folder)
+        {
+            List<string> files = new();
+            if (System.IO.Directory.Exists(folder))
+            {
+                for (System.IO.DirectoryInfo? current = new(folder); current != null; current = current.Parent)
+                    if ((current.Attributes & System.IO.FileAttributes.ReparsePoint) != 0)
+                        throw new System.IO.IOException("WASM cleanup cannot follow linked folders.");
+                files.AddRange(System.IO.Directory.EnumerateFiles(folder, "*",
+                    new System.IO.EnumerationOptions
+                    {
+                        RecurseSubdirectories = false,
+                        IgnoreInaccessible = false,
+                        AttributesToSkip = System.IO.FileAttributes.ReparsePoint
+                    }));
+            }
+            return CreateDefinition(
+                $"WASM {version} loose files", $"WASM {version} LOOSE FILE BACKUP",
+                $"WASM-{version}", CacheItemType.File, files,
+                $"Backing up {version} loose files...",
+                $"No loose files found in {version}.",
+                $"No files directly inside {folder}. Subfolders are left intact.",
+                "WASM backup and clear", "WASM file backup failed.", "WASM backup error");
+        }
         public List<CacheCleanupDefinition> CreateAll()
         {
             return new List<CacheCleanupDefinition>
@@ -136,7 +179,7 @@ namespace MSFSCacheManager.Services
                 MarkAdvanced(CreateDceCleanup()),
                 MarkAdvanced(CreateStreamedPackagesCleanup()),
                 MarkAdvanced(CreateSimObjectsCleanup()),
-                MarkAdvanced(CreateWasmCleanup())
+                MarkAdvanced(CreateWasmScan())
             };
         }
 
@@ -223,3 +266,5 @@ namespace MSFSCacheManager.Services
         }
     }
 }
+
+

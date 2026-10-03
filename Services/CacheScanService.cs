@@ -162,10 +162,11 @@ namespace MSFSCacheManager.Services
 
             return new CacheScanItem
             {
+                IsSelected = definition.OperationName != "WASM Cache",
                 Category = definition.OperationName,
                 Simulator = InferSimulator(path, definition.OperationName),
                 Platform = InferPlatform(path, group.BackupCategory),
-                RiskLevel = definition.RiskLevel,
+                RiskLevel = definition.OperationName == "WASM Cache" ? "Scan only" : definition.RiskLevel,
                 Path = path,
                 SizeBytes = size,
                 FileCount = fileCount,
@@ -186,6 +187,10 @@ namespace MSFSCacheManager.Services
             {
                 return "MSFS 2020";
             }
+
+            if (category == "WASM Cache" &&
+                string.Equals(System.IO.Path.GetFileName(path), "MSFS2020", StringComparison.OrdinalIgnoreCase))
+                return "MSFS 2020";
 
             if (category == "Streamed Packages" ||
                 path.Contains("2024", StringComparison.OrdinalIgnoreCase) ||
@@ -233,3 +238,4 @@ namespace MSFSCacheManager.Services
         }
     }
 }
+

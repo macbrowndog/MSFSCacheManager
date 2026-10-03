@@ -6,6 +6,37 @@ namespace MSFSCacheManager.Tests;
 public class CacheScanServiceTests
 {
     [Fact]
+    public void Wasm_ScansVersionFoldersAndCannotBulkCleanAircraftData()
+    {
+        using TempDirectory temp = new();
+        CacheManagerService manager = new();
+        CacheCleanupDefinitionFactory factory = new(manager);
+        Assert.Empty(factory.CreateWasmCleanup().Groups);
+        Assert.DoesNotContain(manager.GetWASMCacheLocations(),
+            p => p.EndsWith("LocalState" + Path.DirectorySeparatorChar + "WASM", StringComparison.OrdinalIgnoreCase));
+        var definition = factory.CreateWasmScan();
+        definition.Groups[0].Locations.Clear();
+        foreach (string version in new[] { "MSFS2020", "MSFS2024" })
+        {
+            string folder = temp.GetPath("Microsoft.Limitless_8wekyb3d8bbwe", "LocalState", "WASM", version);
+            Directory.CreateDirectory(Path.Combine(folder, "aircraft", "work"));
+            File.WriteAllText(Path.Combine(folder, "aircraft", "work", "settings.dat"), "persistent data");
+            definition.Groups[0].Locations.Add(folder);
+        }
+        var results = new CacheScanService(factory).Scan(
+            new[] { definition }, null, CancellationToken.None);
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, r => r.Simulator == "MSFS 2020");
+        Assert.Contains(results, r => r.Simulator == "MSFS 2024");
+        Assert.All(results, r =>
+        {
+            Assert.False(r.IsSelected);
+            Assert.Equal("Scan only", r.RiskLevel);
+            Assert.Equal(1, r.FileCount);
+            Assert.True(File.Exists(Path.Combine(r.Path, "aircraft", "work", "settings.dat")));
+        });
+    }
+    [Fact]
     public void Scan_CalculatesMetadataDeduplicatesAndSorts()
     {
         using TempDirectory temp = new();
@@ -92,3 +123,4 @@ public class CacheScanServiceTests
                 cancellation.Token));
     }
 }
+

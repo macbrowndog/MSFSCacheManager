@@ -27,7 +27,7 @@ MSFS Cache Manager is a Windows desktop utility for inspecting, backing up, clea
 | DCE cache | 2020 | Advanced | Targeted MSFS 2020 troubleshooting |
 | Streamed Packages | 2024 | Advanced | Re-download streamed content |
 | SimObjects | 2020 and 2024 | Advanced | Aircraft or AI-object troubleshooting |
-| WASM cache | 2020 and 2024 | Advanced | Aircraft/add-on module troubleshooting |
+| WASM loose files | 2020 and 2024 | Advanced | Back up and clear only files directly inside the version folder; preserve all subfolders |
 
 Advanced operations can cause longer simulator loading times while content is rebuilt or downloaded again.
 
@@ -111,3 +111,15 @@ MSFS Cache Manager is an independent utility and is not affiliated with or endor
 MSFS Cache Manager is licensed under the [MIT License](LICENSE).
 
 Copyright (c) 2026 Andrew M Brown.
+
+## WASM folder tools (v2.0.1)
+
+The Microsoft Store WASM scan lists MSFS2020 and MSFS2024 separately.
+**Open WASM 2020** and **Open WASM 2024** open the corresponding folders.
+**Backup + clear WASM 2020** and **Backup + clear WASM 2024** move only loose
+files directly inside that version folder into a restorable backup. All
+subfolders and their contents remain untouched. Close the simulator first.
+
+Scan selection is informational: **Select All** includes WASM rows but does
+not remove data. WASM scan sizes include subfolders and therefore differ
+from the space affected by loose-file cleanup.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -519,7 +519,8 @@ namespace MSFSCacheManager.Services
                 Path.Combine(
                     msfs2024StorePackage,
                     "LocalState",
-                    "WASM")
+                    "WASM", "MSFS2020"),
+                Path.Combine(msfs2024StorePackage, "LocalState", "WASM", "MSFS2024")
             };
         }
 
@@ -661,3 +662,4 @@ namespace MSFSCacheManager.Services
         }
     }
 }
+

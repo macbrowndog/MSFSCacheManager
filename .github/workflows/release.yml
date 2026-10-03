@@ -43,6 +43,7 @@ jobs:
             -p:Version=$version `
             --output artifacts\publish
           Copy-Item README.md artifacts\publish\README.md
+          Copy-Item CHANGELOG.md artifacts\publish\CHANGELOG.md
           if (Test-Path LICENSE) {
             Copy-Item LICENSE artifacts\publish\LICENSE
           }
@@ -58,5 +59,6 @@ jobs:
           gh release create "${{ github.ref_name }}"
           "artifacts\MSFSCacheManager-${{ github.ref_name }}-win-x64.zip"
           --verify-tag
-          --generate-notes
+          --notes-file CHANGELOG.md
           --title "MSFS Cache Manager ${{ github.ref_name }}"
+

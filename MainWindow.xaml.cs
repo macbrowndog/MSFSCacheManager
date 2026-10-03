@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -567,47 +567,63 @@ private async void SimObjectsButton_Click(
         // WASM CACHE
 // ---------------------------------------------------------
 
-        private async void WASMButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private async void ClearWASM2020Button_Click(object sender, RoutedEventArgs e)
+            => await ClearWasmLooseFilesAsync("MSFS2020");
+
+        private async void ClearWASM2024Button_Click(object sender, RoutedEventArgs e)
+            => await ClearWasmLooseFilesAsync("MSFS2024");
+
+        private async Task ClearWasmLooseFilesAsync(string version)
         {
-            if (!EnsureMSFSIsClosed())
+            if (!EnsureMSFSIsClosed()) return;
+            await RunOperationAsync(async (token, progress) =>
             {
-                return;
-            }
-            MessageBoxResult result =
-     MessageBox.Show(
-         "WASM CACHE - ADVANCED TROUBLESHOOTING\n\n" +
-         "This operation will clear the detected MSFS WASM cache folders.\n\n" +
-         "Use this option when troubleshooting aircraft or add-ons that use WASM modules.\n\n" +
-         "Affected WASM modules may need to be rebuilt by Microsoft Flight Simulator " +
-         "the next time the associated aircraft or add-on is loaded. The first load " +
-         "after cleanup may therefore take longer than usual.\n\n" +
-         "Detected cache data will be moved to the Backups folder before being removed " +
-         "from its active location.\n\n" +
-         "Microsoft Flight Simulator must be completely closed.\n\n" +
-         "Do you want to continue?",
-         "Clear WASM Cache",
-         MessageBoxButton.YesNo,
-         MessageBoxImage.Warning);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                StatusText.Text =
-                    "WASM Cache cleanup cancelled.";
-
-                return;
-            }
-
-            await RunOperationAsync(
-                (token, progress) => ExecuteCleanupAsync(
-                    _cleanupDefinitions.CreateWasmCleanup(),
-                    token,
-                    progress));
+                try
+                {
+                    var definition = _cleanupDefinitions.CreateWasmLooseFilesCleanup(version);
+                    await ExecuteCleanupAsync(definition, token, progress);
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    MessageBox.Show(this, ex.Message, "WASM backup error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            });
         }
+        private void WASM2020Button_Click(object sender, RoutedEventArgs e)
+            => OpenWasmFolder("MSFS2020");
 
+        private void WASM2024Button_Click(object sender, RoutedEventArgs e)
+            => OpenWasmFolder("MSFS2024");
 
-        // ---------------------------------------------------------
+        private void OpenWasmFolder(string version)
+        {
+            string path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Packages", "Microsoft.Limitless_8wekyb3d8bbwe",
+                "LocalState", "WASM", version);
+            if (!Directory.Exists(path))
+            {
+                MessageBox.Show(this, $"WASM folder not found:\n{path}",
+                    $"Open WASM {version}", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception ||
+                                       ex is InvalidOperationException)
+            {
+                MessageBox.Show(this, $"Unable to open the WASM folder:\n{ex.Message}",
+                    "Open WASM folder", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         // SHOW CLEANUP RESULT
         // ---------------------------------------------------------
 
@@ -762,3 +778,6 @@ private async void SimObjectsButton_Click(
         }
     }
 }
+
+
+
