@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.0.2 — 4 October 2026
+
+### Changed
+- Replaced Open WASM and bulk cleanup buttons with Select WASM 2020 files and Select WASM 2024 files.
+- Added an in-app folder browser: directories appear first, double-click opens a folder, and Up returns to its parent within the selected WASM root.
+- Shows only the current directory instead of every file recursively.
+- Users select files, including files within add-on folders, then confirm backup and removal. No cancels without changes.
+- Removed the Windows shell file picker so right-click Delete cannot bypass backup confirmation.
+- Only selected files move to backup. Directories and unselected files remain intact.
+- New backups preserve source-relative directories beneath WASM-MSFS2020 or WASM-MSFS2024. Existing backups are unchanged.
+- Links and paths outside the selected WASM root remain excluded.
+
+### Validation
+- 26 automated tests pass, covering selected-file backups, original directory paths, and rejection of outside paths.
+- User verified selection and backup behavior.
+
+
 ## v2.0.1 — 3 October 2026
 
 ### Added
@@ -21,4 +38,3 @@
 ### Validation
 - All 25 automated tests pass.
 - Release build published successfully.
-

@@ -167,6 +167,49 @@ namespace MSFSCacheManager.Services
                 $"No files directly inside {folder}. Subfolders are left intact.",
                 "WASM backup and clear", "WASM file backup failed.", "WASM backup error");
         }
+        internal CacheCleanupDefinition CreateWasmSelectedFilesCleanup(
+            string version, string folder, IEnumerable<string> selectedFiles)
+        {
+            var definition = CreateWasmLooseFilesCleanup(version, folder);
+            string root = System.IO.Path.GetFullPath(folder).TrimEnd(
+                System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar)
+                + System.IO.Path.DirectorySeparatorChar;
+            var selected = new System.Collections.Generic.HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase);
+            foreach (string file in selectedFiles)
+            {
+                string fullPath = System.IO.Path.GetFullPath(file);
+                if (!fullPath.StartsWith(root, System.StringComparison.OrdinalIgnoreCase) ||
+                    !System.IO.File.Exists(fullPath) ||
+                    (System.IO.File.GetAttributes(fullPath) & System.IO.FileAttributes.ReparsePoint) != 0)
+                    throw new System.IO.IOException("Select regular files within the matching WASM folder.");
+                for (var parent = System.IO.Directory.GetParent(fullPath); parent != null; parent = parent.Parent)
+                    if ((parent.Attributes & System.IO.FileAttributes.ReparsePoint) != 0)
+                        throw new System.IO.IOException("WASM cleanup cannot follow linked folders.");
+                selected.Add(fullPath);
+            }
+            definition.Groups.Clear();
+            var groups = new Dictionary<string, CacheCleanupGroup>(System.StringComparer.OrdinalIgnoreCase);
+            foreach (string file in selected)
+            {
+                string relativeDirectory = System.IO.Path.GetDirectoryName(
+                    System.IO.Path.GetRelativePath(root, file)) ?? "";
+                string category = System.IO.Path.Combine($"WASM-{version}", relativeDirectory);
+                if (!groups.TryGetValue(category, out var group))
+                {
+                    group = new CacheCleanupGroup
+                    {
+                        Heading = category,
+                        BackupCategory = category,
+                        ItemType = CacheItemType.File
+                    };
+                    groups.Add(category, group);
+                    definition.Groups.Add(group);
+                }
+                group.Locations.Add(file);
+            }
+            return definition;
+        }
         public List<CacheCleanupDefinition> CreateAll()
         {
             return new List<CacheCleanupDefinition>
@@ -266,5 +309,8 @@ namespace MSFSCacheManager.Services
         }
     }
 }
+
+
+
 
 

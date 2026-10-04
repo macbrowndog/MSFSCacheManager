@@ -27,7 +27,7 @@ MSFS Cache Manager is a Windows desktop utility for inspecting, backing up, clea
 | DCE cache | 2020 | Advanced | Targeted MSFS 2020 troubleshooting |
 | Streamed Packages | 2024 | Advanced | Re-download streamed content |
 | SimObjects | 2020 and 2024 | Advanced | Aircraft or AI-object troubleshooting |
-| WASM loose files | 2020 and 2024 | Advanced | Back up and clear only files directly inside the version folder; preserve all subfolders |
+| Selected WASM files | 2020 and 2024 | Advanced | Browse folders and back up only selected files; preserve directories and unselected files |
 
 Advanced operations can cause longer simulator loading times while content is rebuilt or downloaded again.
 
@@ -112,14 +112,27 @@ MSFS Cache Manager is licensed under the [MIT License](LICENSE).
 
 Copyright (c) 2026 Andrew M Brown.
 
-## WASM folder tools (v2.0.1)
+## WASM file selection (v2.0.2)
 
-The Microsoft Store WASM scan lists MSFS2020 and MSFS2024 separately.
-**Open WASM 2020** and **Open WASM 2024** open the corresponding folders.
-**Backup + clear WASM 2020** and **Backup + clear WASM 2024** move only loose
-files directly inside that version folder into a restorable backup. All
-subfolders and their contents remain untouched. Close the simulator first.
+1. Close Microsoft Flight Simulator.
+2. Choose **Select WASM 2020 files** or **Select WASM 2024 files**.
+3. Double-click a directory to browse into it; use **Up** to return to its parent.
+4. Select files in the current directory with Ctrl-click or Shift-click.
+5. Click **Back up and remove selected**, then confirm **Yes** to move the selected files into a restorable backup. **No** or **Cancel** leaves files unchanged.
 
-Scan selection is informational: **Select All** includes WASM rows but does
-not remove data. WASM scan sizes include subfolders and therefore differ
-from the space affected by loose-file cleanup.
+The in-app browser has no Explorer context menu or direct-delete command.
+Only explicitly selected files are removed from their active locations.
+All directories and unselected files remain intact. Links and paths outside
+the matching WASM root are excluded. Changing directories clears the selection.
+
+New backups preserve the source directory structure beneath the version
+folder, for example:
+
+    <backup session>\WASM-MSFS2024\orbx-airport-ymml-melbourne\file.cache
+
+The restore manifest records the original and backup paths. Use **Manage
+Backup Sessions** to restore files. Existing backups are unchanged.
+
+Scan selection remains informational: **Select All** includes WASM rows but
+does not remove data. Scan sizes include subfolder contents, rather than only
+the files selected for backup.

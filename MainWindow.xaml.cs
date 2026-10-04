@@ -576,11 +576,43 @@ private async void SimObjectsButton_Click(
         private async Task ClearWasmLooseFilesAsync(string version)
         {
             if (!EnsureMSFSIsClosed()) return;
+            string folder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Packages", "Microsoft.Limitless_8wekyb3d8bbwe", "LocalState", "WASM", version);
+            if (!Directory.Exists(folder))
+            {
+                MessageBox.Show(this, $"WASM folder not found: {folder}", "Select WASM files");
+                return;
+            }
+            WasmFileSelectionWindow picker;
+            try
+            {
+                picker = new WasmFileSelectionWindow(folder, version) { Owner = this };
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                MessageBox.Show(this, ex.Message, "Unable to list WASM files");
+                return;
+            }
+            if (picker.ShowDialog() != true) return;
+            var confirmation = MessageBox.Show(
+                this,
+                $"Back up and remove {picker.FileNames.Length} selected file(s)?\n\n" +
+                "The selected files will be moved into a restorable backup, removing them from their current location.\n\n" +
+                "No files will be removed without a backup. Folders and unselected files will remain untouched.\n\n" +
+                "Choose Yes to continue, or No to cancel.",
+                $"Confirm {version} backup and removal",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question,
+                MessageBoxResult.No);
+            if (confirmation != MessageBoxResult.Yes) return;
+            if (!EnsureMSFSIsClosed()) return;
             await RunOperationAsync(async (token, progress) =>
             {
                 try
                 {
-                    var definition = _cleanupDefinitions.CreateWasmLooseFilesCleanup(version);
+                    var definition = _cleanupDefinitions.CreateWasmSelectedFilesCleanup(
+                        version, folder, picker.FileNames);
                     await ExecuteCleanupAsync(definition, token, progress);
                 }
                 catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
@@ -589,40 +621,6 @@ private async void SimObjectsButton_Click(
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
-        }
-        private void WASM2020Button_Click(object sender, RoutedEventArgs e)
-            => OpenWasmFolder("MSFS2020");
-
-        private void WASM2024Button_Click(object sender, RoutedEventArgs e)
-            => OpenWasmFolder("MSFS2024");
-
-        private void OpenWasmFolder(string version)
-        {
-            string path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Packages", "Microsoft.Limitless_8wekyb3d8bbwe",
-                "LocalState", "WASM", version);
-            if (!Directory.Exists(path))
-            {
-                MessageBox.Show(this, $"WASM folder not found:\n{path}",
-                    $"Open WASM {version}", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = path,
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception ||
-                                       ex is InvalidOperationException)
-            {
-                MessageBox.Show(this, $"Unable to open the WASM folder:\n{ex.Message}",
-                    "Open WASM folder", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
         // SHOW CLEANUP RESULT
         // ---------------------------------------------------------
@@ -778,6 +776,9 @@ private async void SimObjectsButton_Click(
         }
     }
 }
+
+
+
 
 
 

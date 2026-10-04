@@ -5,6 +5,34 @@ namespace MSFSCacheManager.Tests;
 
 public class CleanupCoordinatorTests
 {
+    [Fact]
+    public async Task WasmSelection_OnlyMovesSelectedFilesAndRejectsOutsideFiles()
+    {
+        using TempDirectory temp = new();
+        string root = temp.GetPath("MSFS2024");
+        Directory.CreateDirectory(Path.Combine(root, "aircraft"));
+        string chosen = Path.Combine(root, "chosen.bin");
+        string kept = Path.Combine(root, "kept.bin");
+        string nested = Path.Combine(root, "aircraft", "data.bin");
+        foreach (string file in new[] { chosen, kept, nested }) File.WriteAllText(file, "data");
+        var factory = new CacheCleanupDefinitionFactory(new CacheManagerService());
+        Assert.Throws<IOException>(() => factory.CreateWasmSelectedFilesCleanup(
+            "MSFS2024", root, new[] { chosen, temp.GetPath("outside.bin") }));
+        Assert.True(File.Exists(chosen));
+        var definition = factory.CreateWasmSelectedFilesCleanup("MSFS2024", root, new[] { chosen, chosen, nested });
+        var backup = new BackupService(temp.GetPath("Backups"));
+        var result = await new CleanupCoordinator(backup).ExecuteAsync(definition, null, CancellationToken.None);
+        Assert.Equal(2, result.BackupResult.FilesMoved);
+        Assert.False(File.Exists(chosen));
+        Assert.True(File.Exists(kept));
+        Assert.False(File.Exists(nested));
+        Assert.True(Directory.Exists(Path.GetDirectoryName(nested)));
+        Assert.Equal(2, backup.LoadManifest(result.BackupSession)!.Entries.Count);
+        Assert.All(backup.LoadManifest(result.BackupSession)!.Entries, e => Assert.True(File.Exists(e.BackupPath)));
+        Assert.Empty(factory.CreateWasmSelectedFilesCleanup("MSFS2024", root, Array.Empty<string>()).Groups);
+        Assert.True(File.Exists(Path.Combine(result.BackupSession, "WASM-MSFS2024", "aircraft", "data.bin")));
+        Assert.True(File.Exists(Path.Combine(result.BackupSession, "WASM-MSFS2024", "chosen.bin")));
+    }
     [Theory]
     [InlineData("MSFS2020")]
     [InlineData("MSFS2024")]
@@ -115,4 +143,7 @@ public class CleanupCoordinatorTests
         Assert.False(Directory.Exists(backupRoot));
     }
 }
+
+
+
 

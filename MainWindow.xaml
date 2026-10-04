@@ -241,7 +241,7 @@
             Padding="14,6"
             Margin="0,0,10,0">
 
-                        <TextBlock Text="VERSION 2.0.1"
+                        <TextBlock Text="VERSION 2.0.2"
                    Foreground="#8D96A3"
                    FontSize="11"
                    FontWeight="SemiBold"/>
@@ -510,13 +510,7 @@
                                     Content="SimObjects"
                                     Style="{StaticResource ModernButton}"
                                     Click="SimObjectsButton_Click"/>
-
-                            <Button x:Name="WASM2020Button"
-                                    Content="Open WASM 2020"
-                                    ToolTip="Open the MSFS2020 WASM folder in File Explorer"
-                                    Style="{StaticResource ModernButton}"
-                                    Click="WASM2020Button_Click"/>
-                            <Button Content="Backup + clear WASM 2020" ToolTip="Back up and remove only loose files; preserve all subfolders and their contents" Style="{StaticResource ModernButton}" Click="ClearWASM2020Button_Click"/>
+                            <Button Content="Select WASM 2020 files" ToolTip="Choose files to back up and remove; preserve all subfolders" Style="{StaticResource ModernButton}" Click="ClearWASM2020Button_Click"/>
 
                         </StackPanel>
 
@@ -529,13 +523,7 @@
                                     Content="Streamed Packages"
                                     Style="{StaticResource ModernButton}"
                                     Click="StreamedPackagesButton_Click"/>
-
-
-                            <Button x:Name="WASM2024Button" Margin="0,64,0,10" ToolTip="Open the MSFS2024 WASM folder in File Explorer"
-                                    Content="Open WASM 2024"
-                                    Style="{StaticResource ModernButton}"
-                                    Click="WASM2024Button_Click"/>
-                            <Button Content="Backup + clear WASM 2024" ToolTip="Back up and remove only loose files; preserve all subfolders and their contents" Style="{StaticResource ModernButton}" Click="ClearWASM2024Button_Click"/>
+                            <Button Margin="0,64,0,10" Content="Select WASM 2024 files" ToolTip="Choose files to back up and remove; preserve all subfolders" Style="{StaticResource ModernButton}" Click="ClearWASM2024Button_Click"/>
 
                         </StackPanel>
 
@@ -553,7 +541,7 @@
             <Grid Grid.Row="6">
 
                 <TextBlock
-        Text="MSFS Cache Manager • Version 2.0.1 • Andrew M Brown • © 2026"
+        Text="MSFS Cache Manager • Version 2.0.2 • Andrew M Brown • © 2026"
         Foreground="#515966"
         FontSize="11"
         HorizontalAlignment="Left"/>
@@ -571,7 +559,3 @@
     </Grid>
 
 </Window>
-
-
-
-
